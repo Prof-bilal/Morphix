@@ -234,11 +234,14 @@ src-tauri/src/commands/plans.rs
 - Compatibility refusal, capability refusal, duplicate/collision refusal (AC-07, AC-21).
 - Precondition capture changes ⇒ different hash; unchanged ⇒ identical.
 - Expiry and GC.
-- Wallpaper probe unavailable ⇒ manual step, no wallpaper operation (AC-24 planning half).
+- Wallpaper plans include a per-desktop `SetWallpaper` operation with an independent
+  read-back channel (AC-24).
+- Panel, widget, global-theme and desktop-behaviour operations expand correctly and are
+  refused when the requested mechanism is unsupported (AC-27…AC-32).
 
 **Exit criteria**
 
-- AC-09, AC-10, AC-21 pass; planning half of AC-24 passes.
+- AC-09, AC-10, AC-21, AC-24 pass; expansion tests exist for every capability.
 - Planning twice on unchanged state yields identical canonical plans.
 - No planner code path can write to the filesystem or DBus (verified by types and recording
   tests).
@@ -446,6 +449,9 @@ src/hooks/**
 **Goal:** A calm, explicit UI where the change plan and its consequences are the center of
 the experience, and failure states are impossible to misread.
 
+**Spec:** [UI_SPEC.md](UI_SPEC.md) fixes every screen, state, copy string and error
+presentation; it is the reference for the deliverables and tests below.
+
 **Deliverables**
 
 - App shell, navigation, routing, error boundary, design tokens, light/dark/system theme.
@@ -580,7 +586,7 @@ benches/{plan,apply,snapshot}.rs
 
 **Deliverables**
 
-- Acceptance-criteria traceability matrix (AC-01…AC-26 → tests), CI-checked.
+- Acceptance-criteria traceability matrix (AC-01…AC-32 → tests), CI-checked.
 - VM matrix run: oldest supported and latest stable Plasma 6 minors, at least two distros,
   Wayland and X11.
 - Packaging: AppImage and at least one distro package; desktop entry, icons, metadata.
@@ -612,7 +618,7 @@ docs: README.md, MVP.md, PHASES.md, CONTRIBUTING.md updates
 **Exit criteria**
 
 - Every item in [MVP.md](MVP.md) §9 (Definition of Done) is satisfied.
-- AC-01…AC-26 all pass in CI or the documented manual VM procedure.
+- AC-01…AC-32 all pass in CI or the documented manual VM procedure.
 - Artifacts are reproducible from the tag, with checksums published.
 - No documentation claims a feature the build does not have; known limitations are
   explicit.

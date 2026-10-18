@@ -20,6 +20,7 @@
 
 - [ ] **P0-01** Add repository baseline files: `.gitignore`, `.editorconfig`,
       `rust-toolchain.toml` (pinned), `rustfmt.toml`, `LICENSE-MIT`, `LICENSE-APACHE`.
+      *(the two license files are already in place — see ADR-017)*
 - [ ] **P0-02** Create the Cargo workspace with `crates/morphix-core` and `src-tauri`;
       both packages build with `cargo check`.
 - [ ] **P0-03** Add the `morphix-core` module skeleton from ARCHITECTURE §4 (empty modules,
@@ -222,24 +223,53 @@ every boundary.
       markers, and tree-hash verification.
 - [ ] **P6-06** Integrate the final target map into the adapter and planner; add
       path-derivation tests.
-- [ ] **P6-07** Implement KWin effect apply/reverse with `kwinrc` writes and
-      `org.kde.KWin.reconfigure` through `KdeBus`.
-- [ ] **P6-08** Implement shortcut apply/reverse with `kglobalshortcutsrc` and
-      `org.kde.kglobalaccel`, including read-back verification.
-- [ ] **P6-09** Implement the constrained wallpaper script generator with escaping and
-      golden-script tests; reject unsafe URLs.
-- [ ] **P6-10** Implement wallpaper probe/read-back and the `Degraded` manual-step branch.
-      `[AC-24]`
-- [ ] **P6-11** Implement notifications (`KGlobalSettings`, KWin) and error mapping.
-- [ ] **P6-12** Implement the adapter capability matrix and version/session probe.
-- [ ] **P6-13** Add env-gated real-VM integration tests for every capability on the declared
-      Plasma matrix.
-- [ ] **P6-14** Run the three prototype spikes (KConfig concurrency, wallpaper read-back,
-      effect/shortcut read-back) and record outcomes in DECISIONS/ADR-015.
-- [ ] **P6-15** Record exact validated Plasma versions and distributions for this build.
+- [ ] **P6-07** Implement KWin effects as a **paired** write: `kwinrc [Plugins] <id>Enabled`
+      plus `/Effects.loadEffect` / `unloadEffect`; derive available ids at runtime from
+      `listOfEffects` and intersect with the allowlist. Verify with `isEffectLoaded`.
+      Measured: config+`reconfigure` alone does not load; DBus alone does not persist. `[AC-31]`
+- [ ] **P6-08** Implement shortcut apply/reverse via `kglobalaccel.setShortcut` with
+      `flags=SetPresent` (4), pre-checking `isGlobalShortcutAvailable`, and verifying with
+      `shortcut()`. Flags 0/1/2 are silent no-ops.
+- [ ] **P6-09** Implement the fixed-template Plasma script builder: typed value injection,
+      JSON-escaped paths, enum-only properties, `currentConfigGroup` always set before
+      `readConfig`/`writeConfig`, and golden-script snapshot tests. `[AC-24]`
+- [ ] **P6-10** Implement per-desktop wallpaper apply/verify/restore using
+      `PlasmaShell.wallpaper(u)` as the independent verification channel.
+- [ ] **P6-11** Implement panel properties (location, height, alignment, floating, hiding)
+      with API read-back, persistence wait, and restore-to-absent. Refuse opacity with
+      `E_PANEL_OPACITY_UNSUPPORTED`. `[AC-27]`
+- [ ] **P6-12** Implement panel create/remove with recorded ids and
+      `[PlasmaViews][Panel N]` orphan cleanup. `[AC-29]`
+- [ ] **P6-13** Implement widget add/configure/remove from the curated allowlist, with
+      polling for asynchronous removal and layout snapshot/restore by type and order.
+      `[AC-28]`
+- [ ] **P6-14** Implement the look-and-feel composition engine: parse
+      `contents/defaults`, expand into primitive operations, record deleted overrides,
+      snapshot `kdedefaults/`, and detect the current theme by marker + override diff.
+      Never pass `--resetLayout`. `[AC-30]`
+- [ ] **P6-15** Implement cursor theme apply with the forced two-step re-apply when live
+      state and config disagree. Refuse cursor size with `E_CURSOR_SIZE_UNSUPPORTED`.
+- [ ] **P6-16** Implement desktop behaviour: virtual desktops via
+      `VirtualDesktopManager`, hot corners/animations/switchers via `kwinrc` +
+      `reconfigure`, window rules via `kwinrulesrc`. `[AC-32]`
+- [ ] **P6-17** Implement the reload classifier (`live`/`reconfigure`/`restart_required`/
+      `app_restart`) and the quiesce/persist wait; assert no operation of class `live`
+      needs a restart, and that `systemctl`/`plasmashell --replace` never appear. `[AC-31]`
+- [ ] **P6-18** Implement lost-write detection: read-back after every config write,
+      bounded retry, `E_CONFIG_WRITE_RACE` on exhaustion.
+- [ ] **P6-19** Implement residue cleanup for engine-created panels and desktops, with
+      `E_RESIDUE_CLEANUP_FAILED` on failure.
+- [ ] **P6-20** Implement the appearance-tool runner (colorscheme, cursortheme,
+      desktoptheme) with validated enum arguments and a fixed absolute path list.
+- [ ] **P6-21** Add env-gated real-session integration tests for all fifteen capabilities,
+      including the desync trap, the persistence lag, and the concurrency race.
+- [ ] **P6-22** Re-run the prototype suite on each Plasma 6 minor in the release matrix;
+      record results in CAPABILITY_MATRIX.md, downgrading any capability that regresses.
+- [ ] **P6-23** Record exact validated Plasma/Qt/distro/session combinations for this build.
 
-**Phase exit:** adapter unit tests and VM suite green; no KDE path or DBus call exists
-outside `desktop::kde`; wallpaper fallback documented if needed.
+**Phase exit:** adapter unit tests and real-session suite green; no KDE path or DBus call
+exists outside `desktop::kde`; every capability in CAPABILITY_MATRIX maps to an automated
+test; no capability is claimed in the UI that the matrix lists as unsupported.
 
 ## Phase 7 — Tauri integration
 
@@ -327,7 +357,7 @@ clean; performance budgets met.
 
 ## Phase 11 — Testing and release
 
-- [ ] **P11-01** Create `tests/AC_TRACEABILITY.md` mapping AC-01…AC-26 to automated tests or
+- [ ] **P11-01** Create `tests/AC_TRACEABILITY.md` mapping AC-01…AC-32 to automated tests or
       manual procedures; add a CI check that every AC is covered.
 - [ ] **P11-02** Run the VM matrix: oldest supported and latest stable Plasma 6 minor, two
       distros, Wayland and X11; record exact versions.
@@ -344,4 +374,6 @@ clean; performance budgets met.
       tag.
 - [ ] **P11-10** Run the MVP Definition of Done review and record evidence for each item.
 
-**Phase exit:** MVP §9 satisfied; AC-01…AC-26 covered; documentation matches behavior.
+**Phase exit:** MVP §9 satisfied; AC-01…AC-32 covered; documentation matches behavior;
+CAPABILITY_MATRIX and PROTOTYPE_RESULTS are re-run on the release build and agree with the
+shipped binary.

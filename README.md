@@ -81,15 +81,23 @@ only**, executed exceptionally well.
 18. Refuse unsupported or unsafe operations with an actionable explanation.
 
 Supported resource kinds in V0.1: color schemes, icon themes, cursor themes, Plasma
-styles, window decorations (Aurorae), wallpapers, allowlisted KDE global settings, KWin
-effects, and keyboard shortcuts. Panel layout and full Plasma layout replacement are
-**not** in V0.1; see [MVP.md](MVP.md) and [DECISIONS.md](DECISIONS.md) (ADR-011).
+styles, window decorations, wallpapers, global themes (applied as decomposed plans),
+fonts, panel properties, panel creation, widgets, allowlisted KDE global settings, KWin
+effects, keyboard shortcuts, virtual desktops, hot corners, animation speed and window
+rules. Every one of these was exercised on a live Plasma 6.8 session; see
+[CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) and [PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md).
+
+The user's panel **layout is preserved**, not replaced: applying a theme or pack never
+writes a new layout and never passes `--resetLayout`. The capabilities that remain
+unsupported are panel opacity and cursor size, because no reliable mechanism was found;
+packs requesting them are refused rather than silently ignored. Full-screen layout
+replacement is out of scope (ADR-018, ADR-019).
 
 ## Supported environment
 
 - **Desktop:** KDE Plasma 6.x (`>=6.0, <7.0`). Plasma 5, GNOME, Hyprland, XFCE, Cinnamon,
   and other desktops are explicitly unsupported by V1.
-- **Session:** Wayland preferred, X11 accepted, both on Plasma 6.
+- **Session:** Wayland validated; X11 accepted but not yet validated on Plasma 6.
 - **Distribution:** any Linux distribution shipping Plasma 6. The distribution is
   detected and displayed, but is not a hard gate; Morphix reports which distributions
   have been validated for a release instead of claiming universal compatibility.
@@ -137,6 +145,8 @@ requests narrow, typed operations and renders the plans and results it receives.
 
 | Document | Purpose |
 | --- | --- |
+| [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) | Every capability with its measured state and final approach |
+| [PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md) | Per-experiment log: commands, evidence, problems, recommendation |
 | [PRD.md](PRD.md) | Product requirements, users, journeys, metrics, risks |
 | [MVP.md](MVP.md) | Exact V0.1 scope with testable acceptance criteria |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Module boundaries, data flow, dependency rules |
@@ -144,6 +154,7 @@ requests narrow, typed operations and renders the plans and results it receives.
 | [SECURITY.md](SECURITY.md) | Threat model, trust boundaries, mitigations |
 | [TRANSACTIONS.md](TRANSACTIONS.md) | Operation model, journal, rollback, crash recovery |
 | [DATABASE.md](DATABASE.md) | SQLite schema, relationships, indexes |
+| [UI_SPEC.md](UI_SPEC.md) | Screens, states, copy and failure presentation |
 | [TESTING.md](TESTING.md) | Test strategy, including failure-injection tests |
 | [PHASES.md](PHASES.md) | Implementation phases with exit criteria |
 | [TASKS.md](TASKS.md) | Implementation-ready task checklist |
@@ -165,17 +176,20 @@ morphix/
 └── resources/                # bundled pack resources shipped with the app
 ```
 
+No code exists yet. [PHASES.md](PHASES.md) defines the implementation order and
+[TASKS.md](TASKS.md) the task checklist.
+
 ## Roadmap
 
-V0.1 (MVP) is defined in [MVP.md](MVP.md). Post-MVP work — pack registry, signing,
-panel/layout capabilities, more adapters — is deliberately unscheduled and listed as
+V0.1 (MVP) is defined in [MVP.md](MVP.md). Post-MVP work — pack registry, pack signing,
+additional desktop adapters, and pack removal — is deliberately unscheduled and listed as
 possibilities in [PRD.md](PRD.md) and [DECISIONS.md](DECISIONS.md). Nothing in those
 sections is a commitment.
 
 ## License
 
-Proposed and to be finalized before the first code release: source code under
-`MIT OR Apache-2.0`; first-party demo pack assets under `CC BY 4.0`. Every bundled asset
-must be original or openly licensed, with attribution recorded next to the pack. No
-Apple, Microsoft, or other proprietary assets, logos, fonts, icons, or wallpapers are
-shipped. See [DECISIONS.md](DECISIONS.md) (ADR-017).
+Source code is dual-licensed under `MIT OR Apache-2.0` — see [LICENSE-MIT](LICENSE-MIT) and
+[LICENSE-APACHE](LICENSE-APACHE). First-party demo pack assets are `CC BY 4.0`. Every
+bundled asset must be original or openly licensed, with attribution recorded next to the
+pack. No Apple, Microsoft, or other proprietary assets, logos, fonts, icons, or wallpapers
+are shipped. See [DECISIONS.md](DECISIONS.md) (ADR-017).

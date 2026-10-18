@@ -29,6 +29,11 @@ and an ADR disagree, the ADR is wrong until it is updated or superseded.
 | [ADR-015](#adr-015--wallpaper-via-a-constrained-plasma-scripting-call) | Wallpaper via a constrained Plasma scripting call | Accepted (prototype-gated) |
 | [ADR-016](#adr-016--no-root-no-daemon-no-privileged-helper-in-v1) | No root, no daemon, no privileged helper in V1 | Accepted |
 | [ADR-017](#adr-017--licensing-code-and-pack-assets) | Licensing: code and pack assets | Accepted (pre-release) |
+| [ADR-018](#adr-018--panel-widget-and-desktop-behaviour-customization-in-v01) | Panel, widget and desktop-behaviour customization in V0.1 | Accepted (supersedes ADR-011) |
+| [ADR-019](#adr-019--global-themes-as-decomposed-plans) | Global themes as decomposed plans | Accepted (supersedes ADR-012) |
+| [ADR-020](#adr-020--never-restart-the-desktop-shell) | Never restart the desktop shell | Accepted |
+| [ADR-021](#adr-021--plasma-scripting-is-a-trusted-generator-boundary) | Plasma scripting is a trusted-generator boundary | Accepted |
+| [ADR-022](#adr-022--verify-live-state-and-effective-configuration) | Verify live state and effective configuration | Accepted |
 
 ---
 
@@ -442,8 +447,16 @@ change, not locations.
 
 ## ADR-011 — Defer panel and Plasma layout changes to post-MVP
 
-- **Status:** Accepted
+- **Status:** **Superseded by [ADR-018](#adr-018--panel-widget-and-desktop-behaviour-customization-in-v01)**
 - **Date:** 2026-10-18
+- **Superseded on:** 2026-10-18 after live capability testing
+
+> **Supersession note.** This decision was made without testing. It was reversed after the
+> Plasma scripting API (`panels()`, `new Panel()`, `panel.addWidget()`, `widget.remove()`)
+> was exercised on Plasma 6.8 and proved to support property changes, panel creation and
+> removal, and widget add/configure/remove with read-back and rollback. The premise that
+> layout changes require either forbidden layout scripts or fragile containment editing was
+> false. The original reasoning is preserved below as a record of the mistake.
 
 ### Context
 
@@ -485,8 +498,15 @@ schema version and an ADR.
 
 ## ADR-012 — Compose appearance instead of applying Look-and-Feel packages
 
-- **Status:** Accepted
+- **Status:** **Superseded by [ADR-019](#adr-019--global-themes-as-decomposed-plans)**
 - **Date:** 2026-10-18
+- **Superseded on:** 2026-10-18 after live capability testing
+
+> **Supersession note.** Testing showed `plasma-apply-lookandfeel -a` does **not** reset
+> the panel layout (that requires the separate `--resetLayout` flag), does **not** execute
+> package scripts in this case, and expresses its changes as a readable `contents/defaults`
+> file that decomposes into operations Morphix already supports. The "compose" half of this
+> ADR survives; the "do not support global themes" half is reversed.
 
 ### Context
 
@@ -720,6 +740,226 @@ logos, icons, fonts, wallpapers, or theme files are shipped.
 - The asset audit in Phase 9 checks provenance and rejects brand assets.
 - `license` in `pack.toml` must be a valid SPDX expression.
 - Changing the license later requires an ADR and contributor consideration.
+
+---
+
+## ADR-018 — Panel, widget and desktop-behaviour customization in V0.1
+
+- **Status:** Accepted
+- **Date:** 2026-10-18
+- **Supersedes:** ADR-011
+
+### Context
+
+ADR-011 excluded panels and layouts on the untested belief that the only options were
+forbidden layout scripts or fragile containment editing plus a shell restart. Live testing
+on Plasma 6.8 disproved that.
+
+### Decision
+
+V0.1 supports panel properties (edge, height, alignment, floating, hiding), panel creation
+and removal, allowlisted widgets, and allowlisted desktop behaviour (virtual desktops, hot
+corners, animation speed, window rules, switcher layouts), all through supported APIs with
+read-back verification and reverse operations.
+
+### Reasoning (evidence)
+
+- `panels()[0]` exposes `location/height/alignment/floating/hiding/opacity` and accepted
+  every writable one; read-back confirmed each change and each restore.
+- `new Panel()` created id 46, `remove()` deleted it, and only inert
+  `[PlasmaViews][Panel 46]` sections remained, which the engine now cleans.
+- `addWidget`/`configureWidget`/`remove` round-tripped on panel 23 with the original seven
+  widgets and `AppletOrder` restored.
+- `VirtualDesktopManager` created and removed a desktop with `kwinrc` converging correctly.
+- `[ElectricBorders]` round-tripped with `KWin.reconfigure` and a byte-identical `kwinrc`.
+
+### Tradeoffs
+
+- Panel opacity is **not** supported: the scripting property is silently read-only, and no
+  alternative was proven. Packs requesting it are refused.
+- Widget removal is asynchronous, so verification must poll.
+- Panel persistence lags ~15 s, requiring a quiesce step.
+- Panel and widget identity is not stable: restored widgets receive new ids.
+
+### Consequences
+
+- Six capabilities added to the closed set (`panel.properties`, `panel.widgets`,
+  `panel.create`, `settings.desktop_behavior`, plus the L&F and font capabilities).
+- New operation kinds, reverse semantics, residue cleanup and error codes.
+- Glass-style packs can now ship floating panels instead of manual steps.
+- Multi-screen behaviour remains unvalidated and must be tested before release.
+
+---
+
+## ADR-019 — Global themes as decomposed plans
+
+- **Status:** Accepted
+- **Date:** 2026-10-18
+- **Supersedes:** ADR-012
+
+### Context
+
+ADR-012 excluded Look-and-Feel packages to preserve per-resource preview and rollback.
+Testing showed the exclusion was unnecessary and its premise partly wrong.
+
+### Decision
+
+V0.1 accepts a global theme as pack input, but applies it as a **decomposed plan**: parse
+the package's `contents/defaults`, expand every declared key into a primitive operation,
+snapshot each, apply, verify per component, and roll back per component. The
+`LookAndFeelPackage` marker is written as one additional operation. `--resetLayout` is
+never passed.
+
+### Reasoning (evidence)
+
+- `-a org.kde.breezedark.desktop` left the panel, its id and its seven widgets untouched.
+- The tool's actual effect was to delete user overrides and write one marker
+  (`LookAndFeelPackage`), so the change set is small and describable.
+- `contents/defaults` is a plain KConfig (`[kdeglobals][General] ColorScheme=Vapor`), so it
+  maps one-to-one onto operations Morphix already has.
+- Restoring required including `~/.config/kdedefaults/`, which the tool rewrites.
+
+### Tradeoffs
+
+- Decomposition must match the tool's semantics, including deleted overrides and
+  `kdedefaults`; a naive re-apply diverges.
+- Detection is heuristic: `/etc/xdg/kdeglobals` supplies a system-wide marker, so the marker
+  alone over-reports. Mixed configurations are reported as "custom".
+- A package may declare components that are not installed (for example
+  `widgetStyle=Windows`), which must be refused rather than silently falling back.
+
+### Consequences
+
+- `appearance.look_and_feel` capability plus `[appearance.look_and_feel]` manifest section.
+- Snapshot scope grows to include `kdedefaults/` and deleted-override undo data.
+- Demo packs may reference an installed global theme as a starting point.
+
+---
+
+## ADR-020 — Never restart the desktop shell
+
+- **Status:** Accepted
+- **Date:** 2026-10-18
+
+### Context
+
+Some appearance changes are only picked up at plasmashell start (icon theme, some font
+keys). The obvious remedy is to restart the shell. Testing showed that repeated restarts
+hit systemd's start-rate limit:
+
+```
+Job for plasma-plasmashell.service failed because start of the service was attempted too often.
+```
+
+which left the session with **no panel at all** until `reset-failed` plus a manual start.
+
+### Decision
+
+Morphix never restarts plasmashell, KWin, or the session, and never invokes `systemctl` or
+`--replace`. Every operation declares an apply class (`live`, `reconfigure`,
+`restart_required`, `app_restart`); `restart_required` changes are written to config,
+verified at state level, and reported as taking effect on the next login.
+
+### Reasoning
+
+- The engine's first duty is not to break the desktop; a restart is the one action that can.
+- Rate limiting is outside our control and is triggered by legitimate-looking sequences.
+- Config-only application is still reversible, so the safety model is preserved.
+- Users can restart at a time of their choosing.
+
+### Tradeoffs
+
+- Icon theme changes appear only after logout/login, which may surprise users.
+- The UI must communicate apply classes clearly to avoid a "nothing happened" reaction.
+
+### Consequences
+
+- `restart_required` and `app_restart` in the plan model and UI.
+- Architecture test forbidding `systemctl`/`plasmashell` argv.
+- `E_RESTART_REQUIRED` for attempts to verify a non-live change as if it were live.
+
+---
+
+## ADR-021 — Plasma scripting is a trusted-generator boundary
+
+- **Status:** Accepted
+- **Date:** 2026-10-18
+- **Relates to:** ADR-006, ADR-015
+
+### Context
+
+Panels, widgets and wallpaper require `org.kde.plasmashell` `evaluateScript`. Testing the
+context showed it is powerful: `new ConfigFile(path, false)` plus `writeEntry`/`deleteEntry`
+wrote `~/.config/kdeglobals` and created new files, and `ConfigFile` has **no** path
+restriction. It also has sharp edges: `readConfig` takes `(key, default)` from
+`currentConfigGroup`, and the wrong call silently returns the key name and writes garbage.
+
+### Decision
+
+Scripts are treated as trusted code generated by Rust, never as a sandbox, and never as a
+place where pack text is interpolated. Only fixed templates are emitted; pack input reaches
+them solely as closed-set enum identifiers or engine-derived, JSON-escaped absolute paths.
+`ConfigFile` is never constructed by the engine, and an architecture/golden test enforces
+that.
+
+### Reasoning
+
+- The interpreter cannot be made safe from inside; the generator can be made boring.
+- Fixed templates make the script text reviewable and snapshot-testable.
+- Enum-only injection removes the quoting/injection surface entirely.
+
+### Tradeoffs
+
+- New panel/widget behaviours require new templates and tests, not ad-hoc scripts.
+- Read-back templates are separate from write templates, doubling the golden files.
+
+### Consequences
+
+- `desktop::kde::scripting` owns the only script builder.
+- T-29 and T-30 in SECURITY.md.
+- Any script change is a reviewable diff plus a golden-file update.
+
+---
+
+## ADR-022 — Verify live state and effective configuration
+
+- **Status:** Accepted
+- **Date:** 2026-10-18
+
+### Context
+
+Two measurement problems appeared in testing:
+
+1. `~/.config/kdedefaults` is an `XDG_CONFIG_DIRS` entry, so the *effective* value differs
+   from the user file (`plasmarc` reported `Vapor` with no `~/.config/plasmarc` at all).
+2. Screenshot pixel comparison was unusable: full-screen RMSE was dominated by a running
+   browser (0.18 between two states of the same theme), while a cropped panel strip was
+   pixel-stable (RMSE 0 over 4 s).
+
+### Decision
+
+Verification is defined per resource and uses the most authoritative channel available:
+live daemon state first (`supportInformation`, `/Effects`, `wallpaper(u)`, panel scripts,
+`kglobalaccel.shortcut()`), effective configuration second (user file merged with
+`kdedefaults` and `/etc/xdg`), pixels only as supplementary evidence on a static crop.
+
+### Reasoning
+
+- Live state is what the user sees and cannot be spoofed by a stale file.
+- Effective-value reads make "restore to absent" correct instead of creating overrides.
+- Pixel diffing on a live desktop is not reproducible enough to gate a transaction.
+
+### Tradeoffs
+
+- Each capability needs its own verifier, which is more code than a generic diff.
+- Some parameters (effect strengths, window rules) still have no live channel and can only
+  be state-verified; the UI must say so.
+
+### Consequences
+
+- `ResourceState` distinguishes `Absent` from a value.
+- `kdedefaults/` is part of snapshot scope.
+- TESTING.md forbids full-screen pixel assertions as a pass criterion.
 
 ---
 

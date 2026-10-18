@@ -19,7 +19,7 @@ executable logic. Morphix never executes, sources, or interprets anything a pack
    the original product brief is deliberately not part of this schema (ADR-010).
 3. **No URLs.** Assets are local files inside the pack. `homepage` is display-only and is
    never fetched.
-4. **Closed capabilities.** A pack may request only the nine capabilities in §6.
+4. **Closed capabilities.** A pack may request only the fifteen capabilities in §6.
 5. **Closed schema.** Unknown fields are errors, not warnings. Forward compatibility is
    handled by `schema_version`, not by ignoring data.
 6. **Fully declarative.** Applying a pack is reproducible from `pack.toml` + assets +
@@ -410,23 +410,34 @@ schema v1.
 
 ## 6. Capabilities
 
-Exactly nine IDs exist. The table is identical to [MVP.md](MVP.md) §4 and
-[ARCHITECTURE.md](ARCHITECTURE.md) §6.
+Exactly fifteen IDs exist. The table is identical to [MVP.md](MVP.md) §4 and
+[ARCHITECTURE.md](ARCHITECTURE.md) §6. All fifteen were exercised on a live Plasma 6.8
+session ([CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md)).
 
 | Capability ID | Grants |
 | --- | --- |
 | `appearance.color_scheme` | Install and select one color scheme |
 | `appearance.icons` | Install and select one icon theme |
-| `appearance.cursors` | Install and select one cursor theme and size |
+| `appearance.cursors` | Install and select one cursor theme |
 | `appearance.plasma_style` | Install and select one Plasma style |
-| `appearance.window_decorations` | Install and select one Aurorae window decoration |
+| `appearance.window_decorations` | Install and select one window decoration |
 | `appearance.wallpaper` | Install one wallpaper and set the current background |
+| `appearance.look_and_feel` | Install and apply one global theme, decomposed into primitive operations |
+| `appearance.fonts` | Write allowlisted font keys |
+| `panel.properties` | Set edge, height, alignment, floating and hiding on existing panels |
+| `panel.widgets` | Add, configure and remove allowlisted widgets |
+| `panel.create` | Create and remove a panel |
 | `settings.kde_global` | Write allowlisted `kdeglobals` keys |
 | `settings.kwin_effects` | Toggle/configure allowlisted KWin effects |
 | `settings.shortcuts` | Set allowlisted global shortcuts |
+| `settings.desktop_behavior` | Change allowlisted KWin behaviour keys and virtual desktops |
 
 Capabilities describe *classes* of change, never file paths. A pack cannot request "write
 `~/.config/kdeglobals`", only `settings.kde_global`, and even then only allowlisted keys.
+
+Two capabilities are deliberately **absent**, because testing found no mechanism that
+works reliably: panel opacity and cursor size. A pack requesting them fails validation with
+`E_CAPABILITY_UNKNOWN`; it is not silently downgraded to a no-op.
 
 ## 7. Checksums
 
@@ -517,6 +528,42 @@ Any error aborts with all collected errors (up to 100) and writes nothing.
 Runtime codes such as `E_PLAN_STALE`, `E_CAPABILITY_DENIED`, `E_ROLLBACK_CONFLICT`, and
 `E_APPLY_FAILED` are defined in [TRANSACTIONS.md](TRANSACTIONS.md) and the error taxonomy
 in [ARCHITECTURE.md](ARCHITECTURE.md) §12.
+
+### 6.1 New declaration forms
+
+Three capabilities need manifest shapes that did not exist in the original spec:
+
+```toml
+[appearance.look_and_feel]
+package = "com.example.mytheme"       # installed Plasma/LookAndFeel package id
+components = ["colors", "icons", "cursors", "plasma_style", "decorations", "wallpaper"]
+# Applying it writes the LookAndFeelPackage marker and deletes conflicting overrides,
+# exactly as the reference tool does; every component stays individually reversible.
+# --resetLayout is never used: the user's panel layout is preserved.
+
+[panel]
+create = false                       # true only for packs that add a panel
+
+[[panel.properties]]
+location = "bottom"                  # top | bottom | left | right
+height = 44                          # 16..128
+alignment = "center"                 # left | center | right
+floating = true
+hiding = "none"                      # none | autohide | dodgewindows
+
+[[panel.widgets]]
+panel = 0                            # index into the pack's panel list, or existing panel id
+op = "add"                           # add | configure | remove
+type = "org.kde.plasma.digitalclock"
+safe = true                          # must be in the curated allowlist
+
+[[desktop_behavior.virtual_desktops]]
+op = "add"                           # add | rename | remove
+name = "Work"
+```
+
+Panel opacity, cursor size, and arbitrary widget types are **not** expressible: the parser
+rejects unknown fields, so a pack cannot ask for something the engine cannot do.
 
 ## 9. Unsupported actions
 

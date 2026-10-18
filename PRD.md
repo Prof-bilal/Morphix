@@ -307,15 +307,23 @@ Requirements are numbered for traceability to [MVP.md](MVP.md) acceptance criter
 | --- | --- |
 | OS | Linux |
 | Desktop | KDE Plasma 6.x (`>=6.0, <7.0`) |
-| Session | Wayland (primary), X11 (supported) |
-| Architecture | x86_64 (primary); aarch64 builds are not validated in V0.1 |
+| Session | Wayland (validated), X11 (accepted, not yet validated) |
+| Architecture | x86_64 (primary, validated on one machine); aarch64 not validated in V0.1 |
 | Distribution | Any distro shipping Plasma 6; validated distros listed per release |
+| Validated combination | Plasma 6.8.0 + KF 6.31.0 + Qt 6.12.0 + Wayland, x86_64, single screen |
 | Privileges | Normal user session only; root is unsupported |
 | Network | Not required, not used |
 
 Unsupported and refused in V1: Plasma 5, GNOME, Hyprland, XFCE, Cinnamon, MATE, Budgie,
 COSMIC, Windows, macOS, WSL, containers without a Plasma session, and remote sessions
 without a reachable session DBus.
+
+**Supported is not the same as validated.** Any 6.x desktop may run Morphix, but only
+combinations in the validated matrix ([MVP.md](MVP.md) §1.1) are reported as supported.
+Other 6.x minors, X11 and multi-screen setups report `unverified` with a named warning and
+remain usable. This keeps PRD principle 13 ("no untested compatibility claims") true while
+the matrix is being filled in, and it is why the V1 range is stated as `>=6.0, <7.0` rather
+than as a set of validated versions.
 
 ## 12. Explicit non-goals
 
@@ -325,10 +333,12 @@ without a reachable session DBus.
   writes.
 - No privileged helper, daemon, or setuid component in V0.1.
 - No GNOME/Hyprland/XFCE support in V1.
-- No panel layout or full Plasma layout replacement in V0.1 (ADR-011).
+- No whole-layout replacement in V0.1: a theme or pack preserves the user's panel layout
+  and never triggers `--resetLayout` (ADR-018, ADR-019).
 - No online registry, accounts, cloud sync, telemetry, or social features in V1.
 - No pack monetization.
-- No support for Plasma global look-and-feel packages as an application unit (ADR-012).
+- No support for applying a global theme as an opaque all-or-nothing unit; it is always
+  decomposed into per-component operations (ADR-019).
 - No automatic updates of applied packs; updates are explicit.
 - No multi-user or fleet management.
 - No mobile, web, or Windows/macOS builds.
@@ -358,14 +368,18 @@ caused by stale plans, and packs requiring manual cleanup.
 
 - **A-1** KDE Plasma 6 configuration files under `~/.config` can be read and written
   reliably enough for snapshot/rollback, with KConfig-compatible parsing for the keys we
-  allowlist. Requires the Phase 6 KConfig prototype ([PHASES.md](PHASES.md) Phase 6).
-- **A-2** Setting the current wallpaper can be done through a constrained, Morphix-
-  generated call to Plasma's scripting interface, with a reliable read-back for
-  verification. Requires a prototype; fallback is install-asset + guided manual step.
-- **A-3** KWin effect enablement via `kwinrc` plus the documented reconfigure mechanism is
-  reliable across Plasma 6 minor versions.
+  allowlist. **Validated on 6.8** for read/write/delete/restore; the residual risk is
+  concurrent external writers losing writes (14 of 20 lost in a stress test), which the
+  engine detects and retries rather than ignoring.
+- **A-2** Setting the current wallpaper through a generated Plasma script, with a reliable
+  read-back. **Validated on 6.8**: `wallpaper(u)` returns the image descriptor independently
+  of the write path. The manual-step fallback is removed.
+- **A-3** KWin effect enablement is reliable. **Corrected on 6.8**: `kwinrc` alone plus
+  `reconfigure` does not load an effect, and `loadEffect` alone does not persist it. Both
+  are required, and effect ids are unprefixed (`blur`, not `kwin4_effect_blur`).
 - **A-4** Keyboard shortcut changes can be applied and verified through
-  `kglobalshortcutsrc` and `org.kde.kglobalaccel` without restarting Plasma.
+  `org.kde.kglobalaccel` without restarting Plasma. **Validated on 6.8** with
+  `setShortcut(..., flags=SetPresent)`; flags 0/1/2 are silent no-ops.
 - **A-5** Users accept a per-transaction capability confirmation instead of OS-level
   sandboxing; safety is enforced by construction (typed operations, fixed targets).
 - **A-6** Bundled demo packs can achieve distinct, recognizable looks using only
@@ -375,11 +389,18 @@ caused by stale plans, and packs requiring manual cleanup.
   atomic rename) behave consistently on the filesystems Morphix supports; this needs a
   focused prototype before Phase 10 sign-off. If it does not hold everywhere, Morphix
   refuses the affected target rather than weakening the check.
-- **A-9** The Plasma 6 keys used for Plasma style (`plasmarc [Theme] name`) and window
-  decoration (`kdeglobals [org.kde.kdecoration2] library`/`theme`), plus the KWin effect
-  IDs in the allowlist, are correct across the Plasma 6 minors in the release matrix. The
-  Phase 6 spike verifies each on the declared matrix; any key that does not hold is removed
-  from the allowlist and the capability reports `Unavailable` rather than being faked.
+- **A-9** The keys used per capability are correct across the Plasma 6 minors in the release
+  matrix. **Validated on 6.8**: `plasmarc [Theme] name` is the Plasma style selector, window
+  decoration lives in `kwinrc [org.kde.kdecoration2]` (**not** `kdeglobals`), and effect ids
+  must be read from `/Effects.listOfEffects` because the set changes between minors
+  (`contrast` no longer exists). Each release re-runs the prototype suite and downgrades any
+  capability that regresses.
+- **A-10** `~/.config/kdedefaults/` is user state that global-theme application rewrites.
+  **Validated on 6.8**; snapshots include it. Omitting it silently loses the distro's
+  default look after a rollback.
+- **A-11** Panel and widget identity is not stable across removal and re-addition
+  (Plasma assigns new ids). Restore is by type, index and configuration, and the plan says
+  so rather than promising identity-preserving restoration.
 
 ## 15. Risks
 

@@ -1,8 +1,13 @@
 # Morphix — MVP Definition (V0.1)
 
-- **Status:** Design baseline. V0.1 is not implemented.
+- **Status:** Design baseline, capability-validated. V0.1 is not implemented; every
+  mechanism below was exercised on a live Plasma 6.8 session
+  ([CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md), [PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md)).
 - **Scope:** KDE Plasma 6 only (`>=6.0, <7.0`). No other desktop environment at any point
   in this milestone.
+- **Scope rule:** capabilities were removed only where testing found no safe mechanism;
+  panels, widgets, global themes and desktop behaviour are in scope because they were
+  proven, not deferred because they were hard.
 - **Companion documents:** [PRD.md](PRD.md) (why), [ARCHITECTURE.md](ARCHITECTURE.md)
   (how), [PACK_SPEC.md](PACK_SPEC.md) (pack format), [TRANSACTIONS.md](TRANSACTIONS.md)
   (mutation model), [TESTING.md](TESTING.md) (how it is proven).
@@ -20,7 +25,7 @@ A system is **Supported** only if all of the following hold:
 | Condition | Detection | Failure behavior |
 | --- | --- | --- |
 | Linux (`/proc` present, `/etc/os-release` readable) | read-only filesystem probe | `Unsupported` with reason `NOT_LINUX` |
-| Plasma 6.x running in the current user session (`>=6.0, <7.0`) | DBus `org.kde.plasmashell` presence + version probe | `Unsupported` with reason `NO_PLASMA` / `PLASMA_VERSION_UNSUPPORTED` |
+| Plasma 6.x running in the current user session (`>=6.0, <7.0`) | DBus `org.kde.plasmashell` presence + version probe | `Unsupported` with reason `NO_PLASMA` / `PLASMA_VERSION_UNSUPPORTED`; a 6.x minor outside the validated matrix yields `unverified`, never `Unsupported` |
 | Session bus reachable | DBus connect + ping | `Unsupported` with reason `NO_SESSION_BUS` |
 | Morphix data dir writable | create-and-delete a probe file in `~/.local/share/morphix/` | `Unsupported` with reason `DATA_DIR_UNWRITABLE` |
 | Required KDE interfaces respond | adapter probe (`kdeglobals` readable, `kwinrc` readable, `kglobalaccel` present) | `Unsupported` with per-interface reasons |
@@ -30,6 +35,31 @@ Everything else — distribution family, package manager, Wayland vs X11, langua
 count — is **informational**. The distribution is never a hard gate in V0.1; releases list
 validated distributions and the UI shows a "validated / not yet validated" note without
 blocking apply on an unvalidated distro.
+
+### 1.1 Validated matrix
+
+The mechanisms in [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) were executed on exactly one
+combination. That combination is the **validated** row; everything else in the supported
+range is **unverified**, which is a distinct verdict, not a refusal.
+
+| Combination | Verdict | Evidence |
+| --- | --- | --- |
+| Plasma 6.8.0, KDE Frameworks 6.31.0, Qt 6.12.0, Wayland, CachyOS (Arch-based), x86_64, single screen | **Validated** | [PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md) |
+| Plasma 6.0–6.7 | **Unverified** | no test run yet; effect ids, panel properties and decoration keys are known to drift between minors |
+| Plasma 6.8 on X11 | **Unverified** | no X11 session was available; window-decoration and shortcut paths differ from Wayland |
+| Multi-screen Plasma 6.8 | **Unverified** | single-output host; per-desktop wallpaper and per-screen panels untested |
+| aarch64 | **Unverified** | no hardware |
+
+Rules that follow from this table:
+
+1. The app never reports `Supported` for an unverified combination; it reports `unverified`
+   with the exact validated row it knows about.
+2. Planning and apply remain available on an unverified 6.x combination, with a warning
+   naming the missing validation — the same policy as an unvalidated distribution.
+3. A release note may not claim the full `>=6.0, <7.0` range until at least the oldest and
+   newest supported minors are in the validated table.
+4. Every new validated combination requires a re-run of the matrix, not an inference from a
+   similar one.
 
 Unsupported systems: catalog browsing and pack inspection remain available (read-only);
 planning and apply are refused with the specific reason.
@@ -93,7 +123,38 @@ Each item corresponds to an acceptance-criteria group in §7.
   what was not done and whether anything was changed.
 - No root, no `sudo`, no privileged helper, no network, no telemetry.
 
-### 2.7 Bundled demo packs
+### 2.7 Panel, widget and layout customization
+
+Validated on a live Plasma 6.8 session ([CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) §2.4,
+§2.5). Everything below is applied through Plasma's scripting interface, not by editing
+configuration files behind plasmashell's back.
+
+- Read every panel's live state: id, screen, edge, height, alignment, floating, hiding,
+  opacity, length mode, and widget list.
+- Set edge, height, alignment, floating and hiding; verify by read-back; restore exactly,
+  including deleting keys that did not exist before the transaction.
+- Create and remove panels, with cleanup of the `[PlasmaViews][Panel N]` sections that
+  Plasma leaves behind.
+- Add, configure and remove widgets from a curated allowlist of safe widget types, and
+  verify the resulting widget order.
+- Snapshot and restore a widget layout by type, index and per-widget configuration.
+  Widget identifiers are reassigned by Plasma; restore is by type and order, and the plan
+  states that.
+
+### 2.8 Global themes (look-and-feel) and desktop behaviour
+
+- Apply a global theme package as a **composed plan**: read the package's
+  `contents/defaults`, express each declared key as a typed operation, snapshot, apply and
+  verify per component. Individual components remain individually reversible.
+- Detect the current theme from the `LookAndFeelPackage` marker plus an override diff, and
+  report "custom (derived from X)" when the configuration is a mix instead of guessing.
+- Never pass `--resetLayout`: replacing the user's panel layout is not part of applying a
+  theme.
+- Virtual desktops: create, rename, remove, and restore count and order.
+- Hot corners (screen edges), animation speed, and window rules through allowlisted keys
+  with `KWin.reconfigure`.
+
+### 2.9 Bundled demo packs
 
 Four declarative packs, original/open assets only, no proprietary brand assets:
 
@@ -102,7 +163,7 @@ Four declarative packs, original/open assets only, no proprietary brand assets:
 | Cupertino | macOS-inspired light and dark composition | Original icons, cursors, wallpaper, colors; traffic-light controls are not reproduced by Morphix (the Aurorae decoration is original) |
 | Windows Inspired | Modern Windows-inspired layout | Original equivalents; no Microsoft logos, fonts, or wallpapers; panel changes are guidance only |
 | Minimal Developer | Low-noise interface and developer shortcuts | Subdued colors, compact fonts where safe, developer-oriented shortcuts |
-| Glass | Transparency, blur, floating-style panels | Floating panels cannot be automated in V0.1; shipped as documented manual steps, while blur/transparency/colors/wallpaper are applied |
+| Glass | Transparency, blur, floating-style panels | Floating panel state, blur, transparency, colors and wallpaper are all applied through the panel and effect capabilities |
 
 Each pack must plan and apply on a clean Plasma 6 install, and roll back to the exact
 pre-pack state.
@@ -112,7 +173,9 @@ pre-pack state.
 Ordered by expected value, not committed to a release. Items that must never enter V0.1,
 including the current release's hard non-goals, are listed in §10.
 
-- Panel properties (floating, thickness, alignment) and Plasma layout replacement.
+- Whole-layout replacement (`--resetLayout`) as an explicit, separately consented action.
+- Panel opacity, cursor size, and live icon-theme switching: mechanisms exist but no
+  reliable path was found, so they are not promised (see [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md)).
 - Pack uninstall for packs that are installed but never applied.
 - Snapshot tagging, retention policy, and manual snapshots.
 - Pack updates with diffed upgrade plans.
@@ -126,7 +189,7 @@ including the current release's hard non-goals, are listed in §10.
 
 ## 4. Capability set (V0.1)
 
-Nine capabilities, closed set. Each maps to a fixed target table in
+Fifteen capabilities, closed set. Each maps to a fixed target table in
 [ARCHITECTURE.md](ARCHITECTURE.md) §6. Packs cannot invent capabilities or paths.
 
 | Capability | What it allows | Targets |
@@ -140,9 +203,17 @@ Nine capabilities, closed set. Each maps to a fixed target table in
 | `settings.kde_global` | Write allowlisted `kdeglobals` keys | `~/.config/kdeglobals` |
 | `settings.kwin_effects` | Toggle/configure allowlisted KWin effects | `~/.config/kwinrc`, KWin reconfigure |
 | `settings.shortcuts` | Set allowlisted global shortcuts | `~/.config/kglobalshortcutsrc`, `kglobalaccel` DBus |
+| `appearance.look_and_feel` | Apply a global theme as a composed plan of the capabilities above | resource packages + `kdeglobals [KDE] LookAndFeelPackage` |
+| `appearance.fonts` | Set allowlisted font keys | `~/.config/kdeglobals` |
+| `panel.properties` | Set edge, height, alignment, floating and hiding | Plasma scripting, `~/.config/plasmashellrc` |
+| `panel.widgets` | Add, configure and remove allowlisted widgets | Plasma scripting, `~/.config/plasma-org.kde.plasma.desktop-appletsrc` |
+| `panel.create` | Create and remove panels | Plasma scripting |
+| `settings.desktop_behavior` | Allowlisted KWin behaviour keys and virtual desktops | `~/.config/kwinrc`, `org.kde.KWin.VirtualDesktopManager` |
 
 Anything not in this table is out of scope and must be rejected at validation or planning
-time. Panel configuration and Plasma layouts are intentionally absent (ADR-011).
+time. All fifteen capabilities were exercised on a live Plasma 6.8 session; the two
+validated exclusions are panel opacity and cursor size, which are refused rather than
+silently ignored.
 
 ## 5. Resource scope
 
@@ -157,8 +228,12 @@ time. Panel configuration and Plasma layouts are intentionally absent (ADR-011).
 | KDE global settings | Supported, allowlisted keys only | `kdeglobals` |
 | KWin configuration | Supported, allowlisted effects/keys only | `kwinrc` + reconfigure |
 | Keyboard shortcuts | Supported, allowlisted components/actions | `kglobalshortcutsrc` + `kglobalaccel` |
-| Panel configuration | Not V0.1 | Guidance text only |
-| Plasma layout | Not V0.1 | Guidance text only |
+| Panel configuration | Supported | Plasma scripting (`location`, `height`, `alignment`, `floating`, `hiding`) |
+| Panel creation / removal | Supported | Plasma scripting, with orphan-section cleanup |
+| Widgets | Supported, allowlisted types | Plasma scripting |
+| Plasma layout | Captured and restored, not replaced | Per-panel widget snapshot; `--resetLayout` never used |
+| Global theme | Supported as composed plan | Package `contents/defaults` decomposed into the rows above |
+| Virtual desktops, hot corners, animation speed, window rules | Supported, allowlisted | `kwinrc` + `KWin.reconfigure`, DBus desktop manager |
 | Arbitrary files | Never | Rejected |
 | Packages, services, drivers | Never | Rejected |
 
@@ -308,11 +383,11 @@ A transaction interrupted after operation N is detected at startup for every N, 
 pre-transaction state is restored and verified. If a required blob is missing, the app
 enters `Recovery required`, lists affected resources, and does not claim restoration.
 
-### AC-24 Wallpaper gate
-If the adapter probe reports wallpaper support available, apply sets the wallpaper and
-verification reads back the expected image path; rollback restores the previously captured
-wallpaper descriptor. If support is unavailable, the plan contains a `manual_step`
-warning, does not include a wallpaper mutation, and says so in the UI.
+### AC-24 Wallpaper
+Apply sets the wallpaper per desktop, and verification reads back the expected image path
+through `org.kde.PlasmaShell.wallpaper(u)` (an independent channel from the write path).
+Rollback restores the previously captured plugin and image. The `manual_step` fallback is
+removed: the mechanism was validated on Plasma 6.8 and no longer needs a gate.
 
 ### AC-25 Offline and local-first
 An integration run with network access blocked (or an assertion that no network client is
@@ -323,6 +398,46 @@ or remote endpoint exists in the codebase.
 Each of the four bundled packs: validates, plans, applies, and rolls back on a supported
 Plasma 6 test VM, leaving no Morphix-installed files and no modified config keys. Previews
 render. No shipped asset is proprietary; each pack carries an attribution file.
+
+### AC-27 Panel properties
+For every supported property (edge, height, alignment, floating, hiding), apply changes the
+live value, a scripting read-back returns the new value, rollback returns the previous
+value, and keys that did not exist before the transaction are deleted rather than written
+with a default. Panel opacity is refused with `E_PANEL_OPACITY_UNSUPPORTED`; it is never
+silently ignored. Panel changes are read back through the API, and persistence is awaited
+before any file hash is compared.
+
+### AC-28 Widgets
+Adding an allowlisted widget increases the panel's widget count by one at the expected
+index; configuring it changes the value returned by `readConfig`; removing it returns the
+panel to its previous widget list within the poll timeout, and the applet's config section
+is gone from `appletsrc`. Removal is treated as asynchronous: verification polls with a
+bounded timeout instead of asserting once.
+
+### AC-29 Panel creation and removal
+Creating a panel increases `panels().length` and yields a usable panel; removing it
+restores the previous count and leaves no `[PlasmaViews][Panel N]` sections in
+`plasmashellrc`. A failed creation leaves no partial panel.
+
+### AC-30 Global themes
+Applying a global theme produces the same per-component state as applying each component
+from the package's `contents/defaults` individually. Rollback restores every component and
+the `~/.config/kdedefaults/` overlay. `--resetLayout` is never passed, and the panel
+widget layout is unchanged after a theme apply. Detection returns "custom" when fewer
+than all declared keys match a packaged theme.
+
+### AC-31 Reload policy
+Every plan entry declares its apply class: `live` (applies immediately), `restart_required`
+(declared before consent; the engine never restarts the shell), or `manual_step`. A test
+asserts that no operation of class `live` needs a restart to verify, and that the engine
+never invokes `systemctl restart plasma-plasmashell`.
+
+### AC-32 Desktop behaviour
+Virtual desktop create, rename and remove round-trip through
+`org.kde.KWin.VirtualDesktopManager`, leaving no `[Tiling][<uuid>]` section for a desktop
+the transaction created. Hot-corner and animation keys round-trip through `kwinrc` and
+`kdeglobals` with `KWin.reconfigure`, and a key that did not exist before is deleted on
+rollback.
 
 ## 8. MVP validation metrics
 
@@ -362,8 +477,12 @@ most contradict the product's safety model rather than merely being deferred.
 
 - Other desktop environments (GNOME, Hyprland, XFCE, Cinnamon, MATE, Budgie, COSMIC).
 - Plasma 5 support.
-- Panel configuration and Plasma layout replacement (ADR-011).
-- Plasma global look-and-feel package application (ADR-012).
+- Whole-layout replacement and widget-layout presets (`--resetLayout`). Applying a theme
+  preserves the user's panel layout (ADR-018).
+- Panel opacity, cursor size, and live icon-theme switching: no reliable path was found,
+  so these are refused with a specific code rather than approximated (ADR-019).
+- Restarting plasmashell from the engine. Restart-required changes are declared and take
+  effect on the next login (ADR-020).
 - Any pack-provided script, hook, binary, interpreter file, or shell command (ADR-006).
 - Pack-declared filesystem paths or arbitrary write targets (ADR-010).
 - Arbitrary config keys: writes are limited to the documented allowlist.

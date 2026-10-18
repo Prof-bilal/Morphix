@@ -1,6 +1,8 @@
 # Morphix — Security Model and Threat Model
 
-- **Status:** Design baseline; implementation in Phases 5–10.
+- **Status:** Design baseline, threat-model validated. Mechanisms are confirmed on a live
+  Plasma 6.8 session; see [CAPABILITY_MATRIX.md](CAPABILITY_MATRIX.md) and
+  [PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md).
 - **Related:** [ARCHITECTURE.md](ARCHITECTURE.md), [PACK_SPEC.md](PACK_SPEC.md),
   [TRANSACTIONS.md](TRANSACTIONS.md), [TESTING.md](TESTING.md).
 
@@ -22,6 +24,9 @@ explicit about what it changes, and honest about what it cannot protect against.
 | SO-6 | The app works offline and never exfiltrates user data |
 | SO-7 | Hostile input (TOML, paths, files, DBus responses) cannot crash or corrupt the app |
 | SO-8 | Every refusal and failure is explainable with a stable error code |
+| SO-9 | Pack content never becomes evaluable script text in a Plasma script context |
+| SO-10 | The engine never restarts the desktop shell or logs the user out |
+| SO-11 | A successful apply is never reported when a config write was lost to a concurrent writer |
 
 ## 2. Non-goals and explicit limitations
 
@@ -38,6 +43,13 @@ These are documented so the product does not claim protection it cannot provide:
   trust model is "the user chose this pack directory"; a signed registry is post-MVP.
 - **No protection against a compromised KDE session or DBus daemon** that lies about
   state. Verification catches inconsistencies but cannot prove a daemon is honest.
+- **Plasma's scripting interface is not a sandbox.** Testing confirmed that
+  `evaluateScript` exposes `ConfigFile`, which can create, edit and delete arbitrary
+  user config files. Morphix mitigates this by never interpolating pack text into scripts
+  and by generating only fixed templates; it cannot make the interface itself safe.
+- **No protection against a concurrently edited config file being silently overwritten.**
+  Twenty parallel `kwriteconfig6` writers lost 14 of 20 keys in testing. Morphix detects
+  its own lost writes and retries, but cannot serialize writers outside its lock.
 - **No protection against physical access, kernel compromise, or malware already running.**
 - **No backup of the whole system.** Snapshots cover only resources Morphix changes.
 - **No archive handling in V0.1.** Packs are installed from directories, not zip/tar
@@ -47,7 +59,9 @@ These are documented so the product does not claim protection it cannot provide:
 ## 3. Assets to protect
 
 1. User configuration: `~/.config/kdeglobals`, `plasmarc`, `kwinrc`,
-   `kglobalshortcutsrc`, and any file reached by the fixed target map.
+   `kglobalshortcutsrc`, `kcminputrc`, `plasmashellrc`,
+   `plasma-org.kde.plasma.desktop-appletsrc`, `kwinrulesrc`, the `~/.config/kdedefaults/`
+   overlay, and any file reached by the fixed target map.
 2. User data: installed theme/icon/cursor/wallpaper directories.
 3. Reversibility: snapshots, journal, and history.
 4. Integrity of the Morphix pack store and application files.
@@ -80,6 +94,8 @@ These are documented so the product does not claim protection it cannot provide:
 | UI → engine | `src-tauri/commands` | DTOs with IDs/enums; no mutation paths from UI |
 | Engine → filesystem | `fs::Sandbox`, KDE target map | Writes only to resolved allowlisted targets |
 | Engine → DBus | `desktop::kde` | Only documented KDE interfaces; replies are parsed defensively |
+| Engine → Plasma script | `desktop::kde::scripting` | Fixed Rust-generated templates; pack values only as closed-set enums or engine-derived paths; never `ConfigFile` |
+| Engine → KDE CLI tools | `CommandRunner` | Fixed argv, value from a closed set, no shell, 5 s timeout |
 | Engine → SQLite | `storage` | Parameterized SQL only; no pack text in SQL identifiers |
 | Snapshot → engine | `snapshots::manifest` | Manifest hash verified; object hashes verified on read |
 
@@ -131,28 +147,55 @@ denial of service or privacy exposure; **Low** = cosmetic or informational.
 | T-26 | Privacy: telemetry or network exfiltration | High | No HTTP client dependency in the core or app; no analytics; diagnostics are local files exported manually | Dependency audit; offline test |
 | T-27 | Root-owned or group-writable binary used for probes | Low | Probe binaries must be regular files owned by root and not group/world writable, else probe is skipped | Probe tests |
 | T-28 | Denial of service by huge KDE config files | Medium | Config file read cap (16 MiB); refusal with `E_CONFIG_TOO_LARGE`; no unbounded memory growth | Limits tests |
+| T-29 | Pack data injected into a generated Plasma script (wallpaper path, panel value, widget type) | Critical | Scripts are fixed Rust templates; only closed-set enum identifiers and engine-derived absolute paths are emitted, JSON-escaped, validated for quotes/newlines/backslashes; pack never supplies script text | Script snapshot tests; a fixture pack with `";print(1);//` in every string field must produce byte-identical script templates |
+| T-30 | Use of the scripting `ConfigFile` object to escape the target map | Critical | Templates never construct `ConfigFile`; an architecture test greps generated script sources and fails on the identifier; read-back templates use only `desktops()/panels()/widgets()/readConfig` | Static check + script golden tests |
+| T-31 | Silent lost config write from a concurrent KDE writer (14/20 writes lost in testing) | High | Write under the engine lock, read back the effective value, bounded retry, then `E_CONFIG_WRITE_RACE`; never report success on a lost write | Concurrency test with 20 parallel external writers |
+| T-32 | Engine-triggered shell restart leaves the user with no panel | Critical | The engine never invokes `systemctl` or `plasmashell --replace`. Observed: repeated restarts hit systemd's rate limit and left the session without a shell | Architecture test forbidding `systemctl`/`plasmashell` argv; manual restart documented as user action |
+| T-33 | Orphaned `[PlasmaViews][Panel N]` / `[Tiling][uuid]` sections diverge from the recorded state | Medium | Cleanup for objects the transaction created; verify absence; `E_RESIDUE_CLEANUP_FAILED` otherwise | Panel/desktop create-remove tests assert absence |
+| T-34 | Effect/decoration id drift between Plasma versions silently matching nothing | Medium | Derive available effect ids from `/Effects.listOfEffects` at runtime, intersect with the allowlist, refuse unknown names; never copy Plasma 5 `kwin4_effect_*` ids | Versioned allowlist tests; 6.8 fixture proves `contrast` is absent |
+| T-35 | Local-theme package declaring a component that is not installed (e.g. `widgetStyle=Windows`) | Low | Validate each declared component before planning; report `Unavailable` instead of letting KDE fall back silently | L&F decomposition tests against a synthetic package |
 
 ## 7. Process execution policy
 
-V0.1 may spawn **only** fixed-argument version probes, used as a detection fallback:
+Two classes of child process are permitted, both through `CommandRunner`.
+
+**1. Version probes (detection fallback):**
 
 - `plasmashell --version`
 - `kwin_wayland --version`
 
-Rules:
+**2. Appearance activation tools (only where Plasma's own tool performs the live
+notification and no DBus equivalent exists):**
+
+- `plasma-apply-colorscheme <scheme>` — `<scheme>` must match an installed scheme name
+  and `^[A-Za-z0-9_-]{1,64}$`.
+- `plasma-apply-cursortheme <theme>` — same validation, plus the theme must exist in an
+  icon directory with a `cursors/` subdirectory.
+- `plasma-apply-desktoptheme <style>` — same validation, must exist in an installed
+  plasma style directory.
+
+Rules for both classes:
 
 - No shell, ever (`sh -c` is banned).
-- No pack-controlled or user-controlled arguments.
+- No pack-controlled arguments: values come from validated installed-asset sets, and the
+  argv is a fixed array of at most three elements.
 - Binary resolved from a small fixed list of absolute paths; must be a regular file owned
   by root and not group/world writable.
-- 2-second timeout; stdout capped at 4 KiB; stderr ignored except for the error code.
-- Output parsed with a strict version regex; any other output is rejected.
-- Failure is not fatal: detection falls back to `Unverified` / `Unsupported` reasons.
+- 2 s timeout for probes, 5 s for apply tools; stdout capped at 4 KiB; stderr captured only
+  for the error code.
+- Probe output parsed with a strict version regex; any other output is rejected.
+- A tool's success message is **never** treated as verification; the adapter re-reads state.
+- Failure is not fatal for probes (falls back to `Unverified`/`Unsupported`); for apply
+  tools it is a transaction failure that triggers rollback.
 - CI contains an architecture test that fails if `std::process::Command` appears outside
   `platform::probe::CommandRunner`.
 
-No other process is spawned: no `sudo`, no `pkexec`, no package manager, no `kwriteconfig6`,
-no `systemctl`, no Plasma restart.
+Explicitly **not** spawned: `sudo`, `pkexec`, package managers, `kwriteconfig6`,
+`kreadconfig6`, `systemctl`, `plasmashell --replace`, `kwin_wayland --replace`, `bash`
+scripts, or any pack-supplied path. Config reads and writes happen in-process.
+
+The restart prohibition is absolute: a shell restart is the one action that can leave a
+user without a desktop, and testing showed it can fail under systemd rate limiting.
 
 ## 8. Filesystem policy
 
@@ -175,7 +218,8 @@ only if it is the exact resolved target of an operation kind:
 | Plasma style | `~/.local/share/plasma/desktoptheme/<slug>-<key>/` |
 | Window decoration | `~/.local/share/aurorae/themes/<slug>-<key>/` |
 | Wallpaper | `~/.local/share/morphix/assets/wallpapers/<pack-id>/<key>.<ext>` |
-| Config | `~/.config/kdeglobals`, `~/.config/plasmarc`, `~/.config/kwinrc`, `~/.config/kglobalshortcutsrc` |
+| Config | `~/.config/kdeglobals`, `~/.config/plasmarc`, `~/.config/kwinrc`, `~/.config/kglobalshortcutsrc`, `~/.config/kcminputrc`, `~/.config/plasmashellrc`, `~/.config/plasma-org.kde.plasma.desktop-appletsrc`, `~/.config/kwinrulesrc` |
+| Defaults overlay | `~/.config/kdedefaults/<same basenames>` (snapshotted because theme application rewrites it) |
 | Snapshot | `~/.local/share/morphix/snapshots/<id>/` |
 | Pack store | `~/.local/share/morphix/packs/<pack-id>/` |
 

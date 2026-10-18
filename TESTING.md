@@ -227,22 +227,42 @@ With `FakeBus` and a temp HOME:
 - KWin effects: correct `kwinrc [Plugins]` keys, reconfigure call issued, failure mapping.
 - Shortcuts: correct action id, kglobalaccel call, read-back verification, failure
   rollback.
-- Wallpaper: generated script is byte-identical to the snapshot fixture for a given URL;
-  injection attempts in the path are rejected before generation; escaped URL round-trips;
-  probe-unavailable path produces a manual step.
+- Plasma scripts: generated text is byte-identical to the golden fixture for a given
+  operation and value set; injection attempts in a path are rejected before generation;
+  no template constructs `ConfigFile`; `currentConfigGroup` is always emitted before
+  `readConfig`/`writeConfig`.
+- Panels/widgets: property round-trip, create/remove with residue assertion, widget
+  add/configure/remove with polling, layout restore by type and order.
+- Look-and-feel: `contents/defaults` parsing, expansion into primitives, deleted-override
+  capture, `kdedefaults` snapshot, and detection of a deliberately mixed configuration as
+  "custom".
+- Reload classifier: every capability maps to exactly one apply class; no `live` operation
+  requires a restart; `systemctl` and `plasmashell --replace` never appear in any argv.
+- Lost-write race: 20 parallel external writers to one config file; the engine must either
+  observe every value or fail with `E_CONFIG_WRITE_RACE`, never report success.
 - Version probe: exact argv, no shell, root-owned check, timeout, output regex, stderr
   ignored.
 - Notifications: `KGlobalSettings` / KWin reconfigure calls use expected arguments.
 
-Real-VM suite (`#[ignore]`, enabled in CI with a disposable VM):
+Real-session suite (`#[ignore]`, enabled in CI on a disposable Plasma VM):
 
-- Each capability against the oldest supported and latest stable Plasma 6 minor in the
-  release matrix.
-- Apply → visually accepted by a scripted read-back → rollback → original state verified
-  by file hashes and config values.
-- Restart plasmashell between apply and verification to confirm persisted state.
-- Unsupported/degraded capability reporting matches reality.
-- Wallpaper read-back succeeds or the adapter correctly reports `Degraded`.
+- Each of the fifteen capabilities against the oldest supported and latest stable Plasma 6
+  minor in the release matrix.
+- Apply → verify through the authoritative channel → rollback → original state verified by
+  live state, effective config, and file hashes.
+- **Never** restart plasmashell inside a test: it is rate-limited by systemd and can leave
+  the session without a shell. Persisted state is verified by reading the file after the
+  quiesce window, not by restarting.
+- Quiesce test: mutate a panel property, assert the API reflects it immediately, assert
+  `plasmashellrc` converges within the timeout, and assert the engine waits.
+- Desync test: restore a cursor theme by file copy while KWin still holds the old theme;
+  the adapter must use the forced two-step re-apply and end with live state == config.
+- Unsupported reporting matches reality: panel opacity and cursor size are refused with
+  their specific codes.
+- Pixel evidence is supplementary only: assert change on a **static crop** (the panel
+  strip was measured stable at RMSE 0 over 4 s). Full-screen diff assertions are
+  prohibited as a pass criterion, because a live application dominates the diff
+  (measured 0.18 between two states of the same theme).
 
 ### 4.8 Tauri commands
 
@@ -287,8 +307,9 @@ Scripted drill on a disposable Plasma 6 VM (`tests/e2e/fresh-vm.sh`, planned):
 
 1. Fresh user, no Morphix data.
 2. Install package, launch, verify support verdict.
-3. Apply each bundled pack, verify config keys/assets, restart plasmashell, screenshot.
-4. Roll back each, verify hashes match the pre-apply snapshot.
+3. Apply each bundled pack, verify config keys/assets and live state, capture a static
+   crop as supporting evidence.
+4. Roll back each, verify hashes and live state match the pre-apply snapshot.
 5. Restore an older snapshot, verify.
 6. Kill the process mid-apply at a chosen operation, relaunch, verify recovery banner and
    restored state.

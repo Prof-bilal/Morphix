@@ -205,14 +205,63 @@ pub enum OperationAction {
         image_path: PathBuf,
         file_url: String,
     },
+    SetPanelProperty {
+        panel_id: u32,
+        property: PanelProperty,   // location | height | alignment | floating | hiding
+        value: PanelValue,         // closed enum, never free text
+    },
+    CreatePanel {
+        panel_type: String,        // must be org.kde.panel
+        properties: PanelProperties,
+        created_id: Option<u32>,   // recorded after apply, used for residue cleanup
+    },
+    RemovePanel {
+        panel_id: u32,
+        captured: PanelSnapshot,   // properties + ordered widget list
+    },
+    AddWidget {
+        panel_id: u32,
+        widget_type: String,       // must be in the curated allowlist
+        index: i32,
+        created_id: Option<u32>,
+    },
+    ConfigureWidget {
+        panel_id: u32,
+        widget_id: u32,
+        group: Vec<String>,
+        key: String,
+        value: ConfigValue,
+    },
+    RemoveWidget {
+        panel_id: u32,
+        widget_id: u32,
+        captured: WidgetSnapshot,  // type, index, full config map
+    },
+    ApplyGlobalTheme {
+        package_id: String,
+        // Expanded at plan time into the concrete operations above plus
+        // WriteConfigValue for the LookAndFeelPackage marker and the
+        // overrides the package deletes.
+        expanded: Vec<OperationAction>,
+    },
+    ManageVirtualDesktop {
+        action: VirtualDesktopAction, // Create | Rename | Remove
+        id: Option<String>,
+        position: Option<u32>,
+        name: Option<String>,
+    },
 }
 ```
 
 Mapping from the product brief's conceptual operations to the implemented set:
 `CopyFile` and `InstallTheme` are realized by `InstallAsset` (per asset kind),
 `WriteConfigValue` is `WriteConfigValue`, `SetWallpaper` is `SetWallpaper`,
-`ModifyShortcut` is `WriteShortcut`, `EnableKWinEffect` is `SetKWinEffect`, and
-`InstallPlasmaLayout` is **not** in V0.1 (ADR-011).
+`ModifyShortcut` is `WriteShortcut`, `EnableKWinEffect` is `SetKWinEffect`,
+`InstallPlasmaLayout` is realized as `SetPanelProperty` + `AddWidget` /
+`ConfigureWidget` (existing layout preserved), and applying a global theme is
+`ApplyGlobalTheme`, which always expands to primitive operations so each component is
+individually reversible. `InstallPlasmaTheme` is covered by `InstallAsset` plus
+`WriteConfigValue` on `plasmarc`.
 
 Each `PlannedOperation` carries the reverse data captured at plan time (`previous`) and
 the expected post-state (`expected`). At apply time the executor records the actually
@@ -233,9 +282,15 @@ Every operation kind implements four behaviors:
 Additional operation rules:
 
 - **Self-contained notifications.** An operation that needs KDE to reload (KWin effects,
-  shortcuts, wallpaper) performs its own DBus notification as part of apply and reverse.
-  There is no separate "notify" operation whose reversal could be ambiguous.
-- **No shell, no external binaries.** All operations use filesystem APIs or DBus.
+  shortcuts, wallpaper, panels, decorations, hot corners) performs its own DBus
+  notification or fixed-argv appearance tool call as part of apply and reverse. There is no
+  separate "notify" operation whose reversal could be ambiguous.
+- **Declared apply class.** Every operation declares `live`, `reconfigure`,
+  `restart_required`, or `app_restart` (ARCHITECTURE §9.3). A `restart_required` operation
+  is still applied to config, but its verification is `StateVerified` only, and it never
+  counts as `LiveVerified`. The plan must surface this before consent.
+- **No shell.** Filesystem APIs, DBus, and a fixed set of appearance tools with validated
+  enum arguments (SECURITY §7). No `systemctl`, no shell restart, ever.
 - **No partial asset installs.** Assets are staged to a temp directory inside the target's
   parent, fsynced, then atomically renamed into place.
 - **Ownership marker.** Installed asset directories contain a generated
@@ -254,6 +309,48 @@ Additional operation rules:
 | `WriteShortcut` | Write config key + `kglobalaccel` sync; read back | If current binding equals written binding, restore previous binding and sync | Binding changed |
 | `SetKWinEffect` | Write `kwinrc` key + reconfigure; read back | If current enabled state equals written state, restore previous and reconfigure | State changed |
 | `SetWallpaper` | Install image, call constrained script, read back descriptor | If current descriptor equals written descriptor, apply previous descriptor | Wallpaper changed by user |
+| `SetPanelProperty` | Set property; read back from `panels()`; await persistence | If current value equals written value, set previous value, or delete the stored key when the pre-state had none | Property changed by user |
+| `CreatePanel` | `new Panel()`, configure, record id | Remove the panel by recorded id, then delete `[PlasmaViews][Panel N]` residue | Panel no longer exists or was repurposed |
+| `RemovePanel` | Capture properties + widget list, then `remove()` | Recreate with the same properties and rebuild widgets in order (ids differ) | Recreated panel count/id mismatch |
+| `AddWidget` | `addWidget(type)` at index, record id | Remove by recorded id; if Plasma already removed it, verify absence | Widget type at index differs |
+| `ConfigureWidget` | `writeConfig` in the target group, read back | Restore previous value; delete when the key was absent | Value changed by user |
+| `RemoveWidget` | Capture config, then `remove()` (async) | Re-add widget of the same type at the same index and re-apply captured config | Panel widget list differs |
+| `ApplyGlobalTheme` | Apply expanded primitive operations in order | Reverse expanded operations in reverse order, including deleted overrides and `kdedefaults/` | Any expanded component conflicts |
+| `ManageVirtualDesktop` | DBus create/rename/remove | Remove a created desktop by id (or recreate a removed one), then delete `[Tiling][<uuid>]` residue | Desktop list differs |
+
+### 5.3 Measured lifecycle rules
+
+These four rules come directly from testing on Plasma 6.8
+([PROTOTYPE_RESULTS.md](PROTOTYPE_RESULTS.md)) and are part of the operation contract.
+
+**Quiesce before hashing.** Plasma persists panel/containment state asynchronously. In
+testing the live panel value changed immediately while `plasmashellrc` still held the old
+values for ~15 s. Therefore:
+
+1. Pre-state is read through the API, never from the file, when the resource has a live
+   API.
+2. After apply, the engine waits for the file backend to converge before recording the
+   post-state hash (bounded timeout; `E_PERSIST_TIMEOUT` on expiry).
+3. Verification uses the API; the file hash is only used for drift detection and rollback.
+
+**Forced re-apply after config restoration.** Some tools decide whether to act by
+comparing against *config*, not live state. `plasma-apply-cursortheme capitaine-cursors`
+refused with "already set as the theme for the current Plasma session" while KWin still
+reported `breeze_cursors`. The adapter therefore uses a two-step re-apply when live state
+and config disagree: apply a distinct value, then the target value. A reverse operation
+that cannot make progress must report `E_REVERSE_NO_EFFECT` rather than claiming success.
+
+**Lost-write detection.** A config write is not complete until the effective value reads
+back. Concurrent external writers lost 14 of 20 keys in testing. The executor reads back
+after each write, retries with bounded backoff, and fails the operation with
+`E_CONFIG_WRITE_RACE` if the value still does not hold. A lost write that happens *after*
+verification is detected at the next transaction's drift check.
+
+**Residue cleanup.** Removing a panel left `[PlasmaViews][Panel N]`; removing a virtual
+desktop left `[Tiling][<uuid>]`. These are recorded as `ResidueCleanup` steps inside the
+same operation: on apply, delete residue the operation created; on reverse, delete residue
+the created object left behind. Failure is `E_RESIDUE_CLEANUP_FAILED` and does not silently
+pass as success.
 
 ## 6. Snapshot
 
@@ -329,7 +426,20 @@ Snapshot exactly the resources in the plan, plus:
 - the whole config file for each `WriteConfigValue`/`WriteShortcut` target;
 - the current wallpaper descriptor per targeted desktop;
 - the whole target tree for an asset that will be replaced (owned previous version);
-- the directory itself if it exists and will be replaced or removed.
+- the directory itself if it exists and will be replaced or removed;
+- **live API state** for panels and widgets: per-panel properties and the ordered
+  widget list with each widget's type, index and config map;
+- **`~/.config/kdedefaults/`** for every file a theme apply may rewrite, because
+  `plasma-apply-lookandfeel` rewrites that overlay as a side effect (observed);
+- **deleted-override undo data** for a global theme apply: every key the package removes
+  is recorded with its previous value, so restoration recreates it;
+- for a `RemovePanel` / `RemoveWidget`, the full captured definition needed to recreate
+  the object.
+
+A pre-state of "key absent" is recorded explicitly as `Absent`, not as "empty string" or
+"default value". Restoring `Absent` means deleting the key, so that inheritance from
+`kdedefaults` and `/etc/xdg` resumes. Conflating the two was observed to create a
+permanent `plasmarc` override that silently changed the plasma style.
 
 Snapshot nothing else. Snapshotting the home directory is forbidden: it is slow, leaks
 unrelated data into the store, and creates a false sense of full-system backup.
@@ -353,9 +463,11 @@ apply_plan(plan_id, plan_hash, consent):
        execute op (targeted write, fsync, notify)
        observe/verify immediate postcondition
        journal op=applied (durable)
- 10. state=verifying; verify all ops
- 11. state=committed; update pack installation / snapshot links; append history
- 12. release lock
+ 10. quiesce: wait (bounded) for Plasma's file backend to converge for panel/containment
+     resources; record convergence outcome per op
+ 11. state=verifying; verify all ops through their authoritative channels
+ 12. state=committed; update pack installation / snapshot links; append history
+ 13. release lock
 ```
 
 Any error from step 6 onward after a mutation has occurred enters `rollback` (§8). Errors in
