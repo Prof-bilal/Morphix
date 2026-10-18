@@ -1,0 +1,3 @@
+# ContextGit per-run state (SQLite journal + WAL files, local worktree metadata).
+# The shared instructions live in AGENTS.md and are tracked normally.
+.contextgit/
