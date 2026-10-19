@@ -21,7 +21,9 @@ body {
   font-size: 15px;
   line-height: 1.5;
   color: var(--text);
-  background: var(--surface);
+  /* The window itself is transparent (tauri.conf.json); each surface supplies its own
+     translucent background. */
+  background: transparent;
 }
 
 :focus-visible {
@@ -49,6 +51,11 @@ body {
   display: grid;
   grid-template-columns: 15rem 1fr;
   height: 100%;
+  /* Frosted glass: the compositor shows the wallpaper through the ~88% translucent
+     surface, while the blur keeps foreground text legible. */
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
 }
 
 .app-nav {
@@ -56,8 +63,10 @@ body {
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4);
-  background: var(--surface-raised);
+  background: var(--surface-glass-raised);
   border-right: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
 }
 
 .app-nav__brand {
@@ -128,4 +137,21 @@ body {
 .code {
   font-family: var(--font-mono);
   font-size: 0.9em;
+}
+
+/* Accessibility: a user who asks the system for less transparency gets opaque, unblurred
+   surfaces. Contrast is never dependent on the wallpaper. */
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  :root[data-theme="light"],
+  :root[data-theme="dark"] {
+    --surface-glass: var(--surface);
+    --surface-glass-raised: var(--surface-raised);
+  }
+
+  .app-shell,
+  .app-nav {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }

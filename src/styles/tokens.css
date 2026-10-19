@@ -31,6 +31,9 @@
   --surface: #f6f7f9;
   --surface-raised: #ffffff;
   --surface-sunken: #eceef2;
+  /* Window translucency: ~88% alpha keeps body text readable over busy wallpapers. */
+  --surface-glass: rgb(246 247 249 / 88%);
+  --surface-glass-raised: rgb(255 255 255 / 92%);
   --text: #1b1c1e;
   --text-muted: #5c6068;
   --text-inverse: #ffffff;
@@ -53,6 +56,8 @@
     --surface: #14161a;
     --surface-raised: #1c1f24;
     --surface-sunken: #0f1114;
+    --surface-glass: rgb(20 22 26 / 88%);
+    --surface-glass-raised: rgb(28 31 36 / 92%);
     --text: #e8eaee;
     --text-muted: #a3a9b4;
     --text-inverse: #14161a;
@@ -74,6 +79,8 @@
   --surface: #14161a;
   --surface-raised: #1c1f24;
   --surface-sunken: #0f1114;
+  --surface-glass: rgb(20 22 26 / 88%);
+  --surface-glass-raised: rgb(28 31 36 / 92%);
   --text: #e8eaee;
   --text-muted: #a3a9b4;
   --text-inverse: #14161a;
