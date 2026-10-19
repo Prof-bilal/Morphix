@@ -1,8 +1,9 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Phase 0 tasks complete (Stages A–G). All local gates pass and the app
-  launches; the first hosted CI run is the remaining exit check.
-  [TASKS.md](TASKS.md) carries the per-task state.
+- **Status:** Phase 0 complete. All ten tasks are checked and hosted CI run
+  `39295512014` passed; the app launches locally. This file remains as the execution record
+  and the environment notes for later phases. [TASKS.md](TASKS.md) carries the per-task
+  state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
   and [PHASES.md](PHASES.md) the phase definition. This file only adds sequencing,
@@ -243,7 +244,7 @@ Criterion, and where it is proven:
 
 | Criterion | Proof |
 | --- | --- |
-| All nine gates in §5 pass locally and in CI | local: all nine exit 0 on 2026-10-19; CI: first hosted run pending |
+| All nine gates in §5 pass locally and in CI | local: all nine exit 0 on 2026-10-19; CI: run `39295512014` green (rust, architecture, frontend, docs) |
 | `tests/architecture.rs` fails on a forbidden import | meta-test plus the demonstrated injection |
 | App launches and shows the placeholder UI | Stage G plus P0-06; `tauri dev` launch observed 2026-10-19 (see §5 environment notes) |
 | Every document linked from README; no doc claims an unimplemented feature | `tests/check_docs.py` and its `--self-test` |

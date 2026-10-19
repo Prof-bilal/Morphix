@@ -1,8 +1,7 @@
 # Morphix — Implementation Phases
 
-- **Status:** Phase 0 in progress. All ten Phase 0 tasks are complete; every local gate
-  passes and the app launches. The first hosted CI run is the remaining exit check. There
-  is no domain logic yet. See [TASKS.md](TASKS.md) for the per-task state.
+- **Status:** Phase 0 complete; hosted CI run `39295512014` is green. Phase 1 (system
+  detection) is starting. See [TASKS.md](TASKS.md) for the per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 
