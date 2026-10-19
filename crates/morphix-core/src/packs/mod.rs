@@ -10,3 +10,5 @@
 //! **Filled in by:** P2-03 (`manifest.rs`), P2-04 (`parser.rs`), P1-07/P2-10
 //! (`compatibility.rs`), P2-10 (`validator.rs`), P2-06 (`integrity.rs`), P2-11 (`store.rs`),
 //! P2-12 (`catalog.rs`).
+
+pub mod compatibility;

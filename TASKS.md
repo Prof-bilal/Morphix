@@ -96,8 +96,13 @@ logic yet.
       `platform::probe` and on the banned escalation forms in core and the Tauri shell.)*
 - [ ] **P1-06** Define `DesktopAdapter`, `AdapterProbe`, capability support states, and
       `FakeAdapter` with call recording.
-- [ ] **P1-07** Implement Plasma version parsing/normalization and SemVer range evaluation
+- [x] **P1-07** Implement Plasma version parsing/normalization and SemVer range evaluation
       (`packs::compatibility`) with tests for partial and malformed versions. `[AC-02]`
+      *(`core::versions::PlasmaVersion` pads 1–3 components, preserves pre-release/build,
+      rejects leading zeroes/overflow/garbage with `E_INVALID_VERSION`; `PlasmaConstraint`
+      enforces PACK_SPEC §5.3 (no version below 6.0.0, at least one below 7.0.0) and uses
+      the release triple so a 6.4 RC still matches `>=6.0, <7.0`. Twenty tests cover
+      partial/malformed versions and the compatibility matrix.)*
 - [ ] **P1-08** Implement KDE DBus presence probing for `org.kde.plasmashell`,
       `org.kde.KWin`, and `org.kde.kglobalaccel` behind a `KdeBus` trait.
 - [ ] **P1-09** Implement the Plasma version fallback chain: package DB → fixed-argv probe;
