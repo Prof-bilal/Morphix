@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "identifier": "org.morphix.Morphix",
   "build": {
-    "frontendDist": "ui"
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [

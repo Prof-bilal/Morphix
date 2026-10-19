@@ -1,8 +1,7 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01 through P0-06 are complete. P0-07's Rust half has
-  landed (`get_app_info` and a placeholder window); its `src/api/client.ts` half is next.
-  P0-08, P0-09 and P0-10 are unchecked.
+- **Status:** Phase 0 in progress. P0-01 through P0-07 are complete. P0-08, P0-09 and
+  P0-10 are unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -42,9 +41,10 @@
       design tokens, and a smoke test. *(eight routes, the token contract, and a
       four-test shell suite; `npm run typecheck`, `npm run test -- --run`, and
       `npm run build` pass)*
-- [ ] **P0-07** Scaffold the Tauri 2 shell with `get_app_info`, a placeholder window, and
-      `src/api/client.ts` as the only `invoke` call site. *(the shell, command, and window
-      config are in place; `src/api/client.ts` lands with P0-06)*
+- [x] **P0-07** Scaffold the Tauri 2 shell with `get_app_info`, a placeholder window, and
+      `src/api/client.ts` as the only `invoke` call site. *(the shell renders the Vite
+      build; `get_app_info` is covered by a Rust command test and a TypeScript client
+      test; no `fs`, `shell`, or `http` plugin is exposed)*
 - [ ] **P0-08** Add CI workflows for Rust (fmt, clippy `-D warnings`, test), frontend
       (typecheck, test, build), and docs (internal link check).
 - [ ] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and

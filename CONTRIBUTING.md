@@ -61,7 +61,7 @@ Prerequisites for building the app once Phase 0 lands:
 | Build the desktop shell | `cargo build -p morphix-app` | yes |
 | Install frontend dependencies | `npm ci` | yes |
 | Run the web UI only | `npm run dev` | yes |
-| Run the desktop app | `npm run tauri dev` | after P0-07 |
+| Run the desktop app | `npm run tauri dev` | yes |
 | Typecheck | `npm run typecheck` | yes |
 | Frontend tests | `npm run test -- --run` | yes |
 | Architecture boundary test | `cargo test -p morphix-core --test architecture` | yes |

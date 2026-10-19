@@ -195,7 +195,7 @@ deliberately broken link in a scratch copy — not in the repository.
 ```bash
 cargo check -p morphix-app        # passes
 cargo test  -p morphix-app        # passes (3 command tests)
-npm run tauri dev                 # after P0-06 wires the Vite frontend
+npm run tauri dev                 # wired; window launch observed during Phase 0 exit
 ```
 
 ## 5. Verification contract
