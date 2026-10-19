@@ -94,8 +94,14 @@ logic yet.
       metadata, skipped user-owned binaries, timeout, output cap, stdin, non-zero exit, and
       token-free errors. The architecture test now fails on `std::process::Command` outside
       `platform::probe` and on the banned escalation forms in core and the Tauri shell.)*
-- [ ] **P1-06** Define `DesktopAdapter`, `AdapterProbe`, capability support states, and
-      `FakeAdapter` with call recording.
+- [x] **P1-06** Define `DesktopAdapter`, `AdapterProbe`, capability support states, and
+      `FakeAdapter` with call recording. *(trait has `kind`/`probe`; the Phase 6 methods
+      are deferred rather than stubbed. `AdapterProbe` carries the optional Plasma version,
+      session type, and a `CapabilityMatrix`. `CapabilitySupport` is the closed
+      `available`/`degraded(reason)`/`unavailable` state, tagged for IPC; an unreported
+      capability reads as `Unavailable`. `FakeAdapter` is `Send + Sync`, repeats its
+      configured result, records `probe` calls, and resets. The closed
+      `core::capability::Capability` set (P2-07) landed here because the probe needs it.)*
 - [x] **P1-07** Implement Plasma version parsing/normalization and SemVer range evaluation
       (`packs::compatibility`) with tests for partial and malformed versions. `[AC-02]`
       *(`core::versions::PlasmaVersion` pads 1–3 components, preserves pre-release/build,
@@ -133,7 +139,10 @@ correct refusal.
       `[AC-19]`
 - [ ] **P2-06** Implement `checksums.sha256` parsing, completeness checks, and verification.
       `[AC-19]`
-- [ ] **P2-07** Implement the `Capability` enum with exact string IDs and serde tests.
+- [x] **P2-07** Implement the `Capability` enum with exact string IDs and serde tests.
+      *(delivered with P1-06: `AdapterProbe` needs the closed set, so `core::capability`
+      was implemented there — 15 variants, exact dotted serde IDs, `from_id`, and serde
+      round-trip/rejection tests.)*
 - [ ] **P2-08** Implement allowlists: config files/groups/keys with value types, KWin
       effects, shortcut components/actions, asset structure requirements.
 - [ ] **P2-09** Implement asset structural validators (`.colors`, `index.theme`,
