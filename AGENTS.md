@@ -44,14 +44,18 @@ that is easiest to implement.
 
 - **KDE Plasma 6 only** (`>=6.0, <7.0`). Never add GNOME, Hyprland, XFCE, Cinnamon, or
   generic desktop support without a new ADR that supersedes ADR-004.
-- **No panel configuration or Plasma layout changes in V0.1** (ADR-011). Do not add a
-  `[panel]` section, containment synthesis, or plasmashell restarts.
+- **Panel, widget and desktop-behaviour changes are in V0.1**, but only through the
+  ADR-018 operation kinds with read-back verification and reverse operations. Never
+  restart plasmashell, KWin, or the session, and never invoke `systemctl` (ADR-020).
+  Plasma scripting is a trusted-generator boundary only, never pack text (ADR-021).
+  Panel opacity is refused; it is not a supported property (ADR-018).
 - **No network, accounts, telemetry, registry, or auto-update** (ADR-008). No HTTP client.
 - **No root, daemon, setuid, polkit, or privileged helper** (ADR-016). Refuse to mutate
   when `geteuid() == 0`.
 - **No pack-provided scripts, shell, interpreters, binaries, or hooks** (ADR-006).
 - **No pack-declared filesystem paths** (ADR-010). Targets come only from the fixed map.
-- **No Look-and-Feel package application** (ADR-012).
+- **No direct Look-and-Feel package application** (ADR-012, superseded by ADR-019).
+  Global themes are decomposed into primitive, reversible operations instead.
 - **No arbitrary KDE DBus methods or undocumented APIs invented from memory.**
 - **Do not silently expand scope because a feature seems useful.** File it as a
   post-MVP possibility instead.
