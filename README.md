@@ -11,13 +11,15 @@ Morphix is an original project. It is conceptually inspired by the *idea* of a
 customization marketplace with safe, inspectable mods, but it is not a port of Windhawk,
 shares no code with it, and does not target Windows.
 
-> ## Project status: design phase
+> ## Project status: Phase 0 in progress
 >
-> **There is no application code yet.** This repository currently contains the product,
-> architecture, security, pack-format, transaction, and testing specifications, plus a
-> task plan. Everything described below is the intended V0.1/V1 behavior, not a claim
-> about working software. See [PHASES.md](PHASES.md) and [TASKS.md](TASKS.md) for the
-> implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
+> **There is no application functionality yet.** Implementation started with the Phase 0
+> foundation: the Cargo workspace, the `morphix-core` module skeleton, and the error
+> taxonomy (73 stable codes with registry drift tests). No detection, pack, planning,
+> snapshot, transaction, adapter, or UI code exists. Everything described below is the
+> intended V0.1/V1 behavior, not a claim about working software. See [PHASE0.md](PHASE0.md),
+> [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the implementation plan, and
+> [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 
 ---
 
@@ -163,7 +165,7 @@ requests narrow, typed operations and renders the plans and results it receives.
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to develop, test, and propose changes |
 | [AGENTS.md](AGENTS.md) | Rules for AI coding agents working in this repository |
 
-## Planned repository layout
+## Repository layout
 
 ```
 morphix/
@@ -177,8 +179,9 @@ morphix/
 └── resources/                # bundled pack resources shipped with the app
 ```
 
-No code exists yet. [PHASES.md](PHASES.md) defines the implementation order and
-[TASKS.md](TASKS.md) the task checklist.
+Only `crates/morphix-core` exists so far, holding the module skeleton and the error
+taxonomy; the remaining directories appear as their phases land. [PHASES.md](PHASES.md)
+defines the implementation order and [TASKS.md](TASKS.md) the task checklist.
 
 ## Roadmap
 

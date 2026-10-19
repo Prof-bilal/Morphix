@@ -31,9 +31,11 @@ that is easiest to implement.
 
 ## 2. Current state
 
-- The repository is in the design phase unless `README.md` says otherwise.
-- There is no application code yet. Do not pretend commands, modules, tests, or binaries
-  exist.
+- Take the current state from `README.md` and `TASKS.md`, not from memory. As of Phase 0
+  in progress, the repository contains the specifications, the Cargo workspace, the
+  `morphix-core` module skeleton, and the error taxonomy — nothing else.
+- Do not pretend commands, modules, tests, or binaries exist that the repository does not
+  contain.
 - Do not mark tasks complete in `TASKS.md` unless the implementation, tests, and docs are
   actually present and verified.
 - Do not add "future" scaffolding that the current phase does not require.

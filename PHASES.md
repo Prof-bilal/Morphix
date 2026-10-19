@@ -1,6 +1,8 @@
 # Morphix — Implementation Phases
 
-- **Status:** Design baseline. Phase 0 has not started.
+- **Status:** Phase 0 in progress. The workspace, the `morphix-core` module skeleton, and
+  the error taxonomy exist; there is no domain logic yet. See [TASKS.md](TASKS.md) for the
+  per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 

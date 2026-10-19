@@ -1,6 +1,7 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Working plan. Phase 0 has not started.
+- **Status:** Working plan. Phase 0 in progress: Stages A–C have landed, and
+  [TASKS.md](TASKS.md) carries the per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
   and [PHASES.md](PHASES.md) the phase definition. This file only adds sequencing,
@@ -13,9 +14,10 @@ Verified on 2026-10-19, from a clean tree:
 
 | Check | Result |
 | --- | --- |
-| Git state | `abba431` on `main`, clean, in sync with `origin/main` |
-| Tracked content | 20 files: 17 Markdown documents, `LICENSE-MIT`, `LICENSE-APACHE`, `.gitignore` |
-| Code | none — no `*.rs`, `*.toml`, `*.ts`, `*.tsx`, `*.json`, `*.yml`, `*.py`, `*.html`, `*.css`, `*.lock` |
+| Git state | started from `abba431` on `main`, clean, in sync with `origin/main` |
+| Tracked content at plan time | 20 files: 17 Markdown documents, `LICENSE-MIT`, `LICENSE-APACHE`, `.gitignore` |
+| Code at plan time | none — no `*.rs`, `*.toml`, `*.ts`, `*.tsx`, `*.json`, `*.yml`, `*.py`, `*.html`, `*.css`, `*.lock` |
+| Landed since | Stages A–C: baseline files, the workspace with the `morphix-core` module skeleton, and the error taxonomy (73 codes with registry drift tests) |
 | Contracts to satisfy | 32 acceptance criteria, 15 capabilities, 8 UI routes, 41 error codes in [ARCHITECTURE.md](ARCHITECTURE.md) §12.1 plus the validation codes in [PACK_SPEC.md](PACK_SPEC.md) §8, 22 ADRs |
 
 ### Toolchain measured on this machine
@@ -114,7 +116,8 @@ cargo clippy --workspace --all-targets -- -D warnings
 **Produces**
 
 - `errors/code.rs`: every code from ARCHITECTURE §12.1 and PACK_SPEC §8 in one table macro,
-  with `as_str`, `from_str`, and a `Result`-returning conversion that never panics.
+  with `as_str` and a `FromStr` implementation that returns a typed `UnknownErrorCode`
+  instead of panicking.
 - `errors/mod.rs`: `MorphixError` (code, message, optional detail, ordered context),
   `Display` as `<CODE>: <message>`.
 - `errors/report.rs`: `RollbackOutcome` whose `Succeeded` variant cannot be built without

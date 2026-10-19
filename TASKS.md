@@ -1,6 +1,8 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Not started. Every box is unchecked.
+- **Status:** Phase 0 in progress. P0-01, P0-03 and P0-04 are complete. P0-02 has produced
+  the `morphix-core` half of the workspace and still needs `src-tauri`. All other boxes are
+  unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -24,11 +26,15 @@
       *(the two license files were already in place — see ADR-017; the toolchain is pinned
       to `1.99.1`)*
 - [ ] **P0-02** Create the Cargo workspace with `crates/morphix-core` and `src-tauri`;
-      both packages build with `cargo check`.
-- [ ] **P0-03** Add the `morphix-core` module skeleton from ARCHITECTURE §4 (empty modules,
-      ownership doc comments, no logic).
-- [ ] **P0-04** Implement `ErrorCode`, `MorphixError`, `Result`, and context entries; add
-      serde round-trip tests for every code.
+      both packages build with `cargo check`. *(the workspace and `crates/morphix-core` are
+      in place and build; `src-tauri` is pending the WebKitGTK 4.1 development headers —
+      see [PHASE0.md](PHASE0.md) §2)*
+- [x] **P0-03** Add the `morphix-core` module skeleton from ARCHITECTURE §4 (empty modules,
+      ownership doc comments, no logic). *(the thirteen top-level modules exist with their
+      allowed-dependency comments; nested files are created by the task that fills them)*
+- [x] **P0-04** Implement `ErrorCode`, `MorphixError`, `Result`, and context entries; add
+      serde round-trip tests for every code. *(73 codes; tests assert the registry matches
+      ARCHITECTURE §12.1 and PACK_SPEC §8, and that operation states match DATABASE.md)*
 - [ ] **P0-05** Add `tests/architecture.rs` enforcing the allowed module edges, including
       a meta-test that detects a forbidden fixture import.
 - [ ] **P0-06** Scaffold the Vite + React + TypeScript UI with React Router routes,

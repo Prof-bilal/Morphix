@@ -1,6 +1,7 @@
 # Morphix — Testing Strategy
 
-- **Status:** Design baseline. No tests exist yet; this defines what must be built.
+- **Status:** Design baseline. The error taxonomy and the report types are covered by
+  unit and registry drift tests; every other suite in this document is still to be built.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TRANSACTIONS.md](TRANSACTIONS.md),
   [SECURITY.md](SECURITY.md), [PHASES.md](PHASES.md).
 

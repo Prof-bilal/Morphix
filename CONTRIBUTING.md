@@ -6,10 +6,12 @@ verified, and rolled back is not ready.
 
 ## Repository status
 
-**The repository is in the design phase.** It currently contains specifications and a task
-plan; there is no application code. The commands in this document are **planned** and will
-not run until Phase 0 is complete (see [PHASES.md](PHASES.md) and [TASKS.md](TASKS.md)).
-Do not add instructions to this file claiming a command works before it does.
+**Phase 0 is in progress.** The repository contains the specifications, a task plan, the
+Cargo workspace, the `morphix-core` module skeleton, and the error taxonomy. There is no
+application functionality yet. The Rust commands below run today; the frontend, Tauri, and
+documentation commands are **planned** and will not run until their Phase 0 tasks land (see
+[PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md)). Do not add
+instructions to this file claiming a command works before it does.
 
 ## Read before writing
 
@@ -51,21 +53,19 @@ Prerequisites for building the app once Phase 0 lands:
   distribution; consult your distribution's Tauri prerequisites.
 - SQLite is compiled in via `rusqlite`'s bundled feature; no system SQLite is required.
 
-Planned commands, available after Phase 0:
-
-| Task | Command |
-| --- | --- |
-| Install frontend dependencies | `npm ci` |
-| Run the web UI only | `npm run dev` |
-| Run the desktop app | `npm run tauri dev` |
-| Typecheck | `npm run typecheck` |
-| Frontend tests | `npm run test -- --run` |
-| Rust format check | `cargo fmt --all --check` |
-| Rust lints | `cargo clippy --workspace --all-targets -- -D warnings` |
-| Rust tests | `cargo test --workspace` |
-| Architecture boundary test | `cargo test -p morphix-core --test architecture` |
-| Docs checks | `python3 tests/check_docs.py` |
-| KDE integration tests (VM) | `MORPHIX_KDE_INTEGRATION=1 cargo test -p morphix-core --test kde_integration -- --ignored` |
+| Task | Command | Available |
+| --- | --- | --- |
+| Rust format check | `cargo fmt --all --check` | yes |
+| Rust lints | `cargo clippy --workspace --all-targets -- -D warnings` | yes |
+| Rust tests | `cargo test --workspace` | yes |
+| Install frontend dependencies | `npm ci` | planned (P0-06) |
+| Run the web UI only | `npm run dev` | planned (P0-06) |
+| Run the desktop app | `npm run tauri dev` | planned (P0-07) |
+| Typecheck | `npm run typecheck` | planned (P0-06) |
+| Frontend tests | `npm run test -- --run` | planned (P0-06) |
+| Architecture boundary test | `cargo test -p morphix-core --test architecture` | planned (P0-05) |
+| Docs checks | `python3 tests/check_docs.py` | planned (P0-09) |
+| KDE integration tests (VM) | `MORPHIX_KDE_INTEGRATION=1 cargo test -p morphix-core --test kde_integration -- --ignored` | planned (Phase 6) |
 
 Never run integration tests against your live session. Use a disposable VM or a throwaway
 user account, and always isolate state:
