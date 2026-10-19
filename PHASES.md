@@ -1,8 +1,9 @@
 # Morphix — Implementation Phases
 
-- **Status:** Phase 0 in progress. The workspace, the `morphix-core` module skeleton, and
-  the error taxonomy exist; there is no domain logic yet. See [TASKS.md](TASKS.md) for the
-  per-task state.
+- **Status:** Phase 0 in progress. The workspace, the `morphix-core` module skeleton, the
+  error taxonomy, the architecture boundary test, and the Tauri 2 shell exist; the frontend
+  scaffold, CI, logging, and docs checks are pending. There is no domain logic yet. See
+  [TASKS.md](TASKS.md) for the per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 

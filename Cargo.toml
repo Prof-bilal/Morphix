@@ -3,12 +3,12 @@
 # `crates/morphix-core` holds every domain rule and must build without Tauri, a GUI
 # toolkit, or a display server (ARCHITECTURE.md §3, §5).
 #
-# NOTE: `src-tauri` (package `morphix-app`) joins `members` in Stage G of PHASE0.md, once
-# the WebKitGTK 4.1 development headers are available on the build machine (PHASE0.md §2).
+# The Tauri shell requires WebKitGTK 4.1 development headers at build time; on Arch-based
+# systems that is the `webkit2gtk-4.1` package (PHASE0.md §2).
 
 [workspace]
 resolver = "3"
-members = ["crates/morphix-core"]
+members = ["crates/morphix-core", "src-tauri"]
 
 [workspace.package]
 version = "0.1.0"

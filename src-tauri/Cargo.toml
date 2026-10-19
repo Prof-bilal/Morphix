@@ -1,0 +1,30 @@
+[package]
+name = "morphix-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Morphix desktop shell: typed IPC commands, events, and app state."
+
+[lib]
+name = "morphix_app"
+path = "src/lib.rs"
+
+# ARCHITECTURE.md §17: the shipped binary is `morphix`.
+[[bin]]
+name = "morphix"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+morphix-core = { path = "../crates/morphix-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# No `fs`, `shell`, or `http` plugin: AC-25 forbids them, and the shell must stay thin.
+tauri = { version = "2", features = [] }
+
+[lints]
+workspace = true

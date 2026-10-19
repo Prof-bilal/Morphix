@@ -10,5 +10,6 @@
 /dist/
 *.tsbuildinfo
 
-# Tauri build output.
+# Tauri build output and generated capability schemas.
 /src-tauri/target/
+/src-tauri/gen/

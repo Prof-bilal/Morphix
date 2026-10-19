@@ -1,8 +1,8 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01, P0-03, P0-04 and P0-05 are complete. P0-02 has produced
-  the `morphix-core` half of the workspace and still needs `src-tauri`. All other boxes are
-  unchecked.
+- **Status:** Phase 0 in progress. P0-01 through P0-05 are complete. P0-07's Rust half has
+  landed (`get_app_info` and a placeholder window); its `src/api/client.ts` half waits on
+  P0-06. P0-06, P0-08, P0-09 and P0-10 are unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -25,10 +25,9 @@
       `rust-toolchain.toml` (pinned), `rustfmt.toml`, `LICENSE-MIT`, `LICENSE-APACHE`.
       *(the two license files were already in place — see ADR-017; the toolchain is pinned
       to `1.99.1`)*
-- [ ] **P0-02** Create the Cargo workspace with `crates/morphix-core` and `src-tauri`;
-      both packages build with `cargo check`. *(the workspace and `crates/morphix-core` are
-      in place and build; `src-tauri` is pending the WebKitGTK 4.1 development headers —
-      see [PHASE0.md](PHASE0.md) §2)*
+- [x] **P0-02** Create the Cargo workspace with `crates/morphix-core` and `src-tauri`;
+      both packages build with `cargo check`. *(B-1 was resolved by installing
+      `webkit2gtk-4.1`; `morphix-app` builds and its command tests pass)*
 - [x] **P0-03** Add the `morphix-core` module skeleton from ARCHITECTURE §4 (empty modules,
       ownership doc comments, no logic). *(the thirteen top-level modules exist with their
       allowed-dependency comments; nested files are created by the task that fills them)*
@@ -42,7 +41,8 @@
 - [ ] **P0-06** Scaffold the Vite + React + TypeScript UI with React Router routes,
       design tokens, and a smoke test.
 - [ ] **P0-07** Scaffold the Tauri 2 shell with `get_app_info`, a placeholder window, and
-      `src/api/client.ts` as the only `invoke` call site.
+      `src/api/client.ts` as the only `invoke` call site. *(the shell, command, and window
+      config are in place; `src/api/client.ts` lands with P0-06)*
 - [ ] **P0-08** Add CI workflows for Rust (fmt, clippy `-D warnings`, test), frontend
       (typecheck, test, build), and docs (internal link check).
 - [ ] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and

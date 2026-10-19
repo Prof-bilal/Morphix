@@ -1,6 +1,6 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Working plan. Phase 0 in progress: Stages A–D have landed, and
+- **Status:** Working plan. Phase 0 in progress: Stages A–D and Stage G have landed, and
   [TASKS.md](TASKS.md) carries the per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
@@ -17,7 +17,7 @@ Verified on 2026-10-19, from a clean tree:
 | Git state | started from `abba431` on `main`, clean, in sync with `origin/main` |
 | Tracked content at plan time | 20 files: 17 Markdown documents, `LICENSE-MIT`, `LICENSE-APACHE`, `.gitignore` |
 | Code at plan time | none — no `*.rs`, `*.toml`, `*.ts`, `*.tsx`, `*.json`, `*.yml`, `*.py`, `*.html`, `*.css`, `*.lock` |
-| Landed since | Stages A–D: baseline files, the workspace with the `morphix-core` module skeleton, the error taxonomy (73 codes with registry drift tests), and the architecture boundary test |
+| Landed since | Stages A–D: baseline files, the workspace with the `morphix-core` module skeleton, the error taxonomy (73 codes with registry drift tests), and the architecture boundary test. Stage G: the Tauri 2 shell with `get_app_info` and a placeholder window |
 | Contracts to satisfy | 32 acceptance criteria, 15 capabilities, 8 UI routes, 41 error codes in [ARCHITECTURE.md](ARCHITECTURE.md) §12.1 plus the validation codes in [PACK_SPEC.md](PACK_SPEC.md) §8, 22 ADRs |
 
 ### Toolchain measured on this machine
@@ -28,23 +28,16 @@ Verified on 2026-10-19, from a clean tree:
 | `node` 24.22.0, `npm` 11.19.1 | present |
 | `python3` 3.14.8 | present (documentation checks) |
 | `gtk+-3.0` 3.24.52, `librsvg-2.0` 2.63.3, `openssl` 3.6.5 | present |
-| `webkit2gtk-4.1` | **missing** (`extra/webkit2gtk-4.1 2.54.1` is available) |
+| `webkit2gtk-4.1` 2.54.1 | present (B-1 resolved) |
 | Desktop | Plasma 6.8.0 on Wayland — the validated combination |
 | Disk | 209 GB free |
 
-## 2. The one blocker
+## 2. Resolved blocker
 
-**B-1 — `webkit2gtk-4.1` is not installed.** Tauri 2 needs those development headers at
-build time, so `src-tauri` cannot compile, which blocks the second half of P0-02, all of
-P0-07, and the Phase 0 exit criterion "the app launches".
-
-| Option | Consequence |
-| --- | --- |
-| Install it (`sudo pacman -S --needed webkit2gtk-4.1`) | Phase 0 completes as written, desktop shell included |
-| Defer | Stages A–F land first; the workspace omits `src-tauri`; Phase 0 stays open on P0-07 and the launch criterion |
-
-This is a system-wide package install, so it is your call. The stage plan below works
-either way; only Stage G changes.
+**B-1 — `webkit2gtk-4.1` was not installed.** It is now installed (2.54.1), so `src-tauri`
+compiles and the second half of P0-02 is complete. `cargo build -p morphix-app` succeeds;
+the remaining launch check waits on the frontend scaffold (P0-06), which replaces the
+temporary `src-tauri/ui/index.html` placeholder.
 
 ## 3. Decisions applied unless you object
 
@@ -187,7 +180,7 @@ npm run build
 **Green when** every command in §5 exits 0, and the docs checker is shown to fail on a
 deliberately broken link in a scratch copy — not in the repository.
 
-### Stage G — Tauri shell (P0-02 second half, P0-07) — only if B-1 is resolved
+### Stage G — Tauri shell (P0-02 second half, P0-07) — landed early
 
 **Produces**
 
@@ -200,9 +193,9 @@ deliberately broken link in a scratch copy — not in the repository.
 **Green when**
 
 ```bash
-cargo check -p morphix-app
-cargo test  -p morphix-app
-npm run tauri dev        # window opens, get_app_info renders, no filesystem or DBus access
+cargo check -p morphix-app        # passes
+cargo test  -p morphix-app        # passes (3 command tests)
+npm run tauri dev                 # after P0-06 wires the Vite frontend
 ```
 
 ## 5. Verification contract
@@ -238,7 +231,7 @@ Criterion, and where it is proven:
 | --- | --- |
 | All nine gates in §5 pass locally and in CI | CI run linked in the PR |
 | `tests/architecture.rs` fails on a forbidden import | meta-test plus the demonstrated injection |
-| App launches and shows the placeholder UI | Stage G, conditional on B-1 |
+| App launches and shows the placeholder UI | Stage G plus the P0-06 Vite build |
 | Every document linked from README; no doc claims an unimplemented feature | `tests/check_docs.py` |
 | No domain logic exists | `cargo test` has no planner, pack, snapshot, or transaction tests |
 

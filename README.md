@@ -13,12 +13,14 @@ shares no code with it, and does not target Windows.
 
 > ## Project status: Phase 0 in progress
 >
-> **There is no application functionality yet.** Implementation started with the Phase 0
-> foundation: the Cargo workspace, the `morphix-core` module skeleton, the error taxonomy
-> (73 stable codes with registry drift tests), and the test that enforces the module
-> boundaries. No detection, pack, planning, snapshot, transaction, adapter, or UI code
-> exists. Everything described below is the intended V0.1/V1 behavior, not a claim about
-> working software. See [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and
+> **There is no application functionality yet.** The Phase 0 foundation is partly in
+> place: the Cargo workspace, the `morphix-core` module skeleton, the error taxonomy
+> (73 stable codes with registry drift tests), the test that enforces the module
+> boundaries, and a Tauri 2 shell that opens a placeholder window and answers
+> `get_app_info`. The frontend scaffold, CI, logging bootstrap, and documentation checks
+> are still being added. No detection, pack, planning, snapshot, transaction, or adapter
+> code exists. Everything described below is the intended V0.1/V1 behavior, not a claim
+> about working software. See [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and
 > [TASKS.md](TASKS.md) for the implementation plan, and [DECISIONS.md](DECISIONS.md) for
 > the reasoning behind the scope.
 
@@ -180,9 +182,10 @@ morphix/
 └── resources/                # bundled pack resources shipped with the app
 ```
 
-Only `crates/morphix-core` exists so far, holding the module skeleton and the error
-taxonomy; the remaining directories appear as their phases land. [PHASES.md](PHASES.md)
-defines the implementation order and [TASKS.md](TASKS.md) the task checklist.
+`crates/morphix-core` holds the module skeleton and the error taxonomy; `src-tauri` holds
+the Phase 0 shell (`get_app_info` and a placeholder window). The frontend and the remaining
+directories appear as their phases land. [PHASES.md](PHASES.md) defines the implementation
+order and [TASKS.md](TASKS.md) the task checklist.
 
 ## Roadmap
 

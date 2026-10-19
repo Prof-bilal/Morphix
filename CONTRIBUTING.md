@@ -7,11 +7,11 @@ verified, and rolled back is not ready.
 ## Repository status
 
 **Phase 0 is in progress.** The repository contains the specifications, a task plan, the
-Cargo workspace, the `morphix-core` module skeleton, and the error taxonomy. There is no
-application functionality yet. The Rust commands below run today; the frontend, Tauri, and
-documentation commands are **planned** and will not run until their Phase 0 tasks land (see
-[PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md)). Do not add
-instructions to this file claiming a command works before it does.
+Cargo workspace, the `morphix-core` module skeleton, the error taxonomy, and the Tauri 2
+shell. There is no application functionality yet. The Rust commands below run today; the
+frontend and documentation commands are **planned** and will not run until their Phase 0
+tasks land (see [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md)).
+Do not add instructions to this file claiming a command works before it does.
 
 ## Read before writing
 
@@ -58,6 +58,7 @@ Prerequisites for building the app once Phase 0 lands:
 | Rust format check | `cargo fmt --all --check` | yes |
 | Rust lints | `cargo clippy --workspace --all-targets -- -D warnings` | yes |
 | Rust tests | `cargo test --workspace` | yes |
+| Build the desktop shell | `cargo build -p morphix-app` | yes |
 | Install frontend dependencies | `npm ci` | planned (P0-06) |
 | Run the web UI only | `npm run dev` | planned (P0-06) |
 | Run the desktop app | `npm run tauri dev` | planned (P0-07) |
