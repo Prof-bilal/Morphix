@@ -1,0 +1,10 @@
+# A malformed fixture: every invalid line is skipped and the valid ones survive.
+this is not an assignment
+= missing key
+NAME
+9LEADING_DIGIT=value
+ID=debian
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+VERSION_ID="12"
+BROKEN="unterminated
+ID_LIKE="debian

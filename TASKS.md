@@ -70,8 +70,12 @@ logic yet.
       lookup; relative XDG values are ignored per spec, relative Morphix overrides are
       refused, and nine unit tests cover defaults, overrides, malformed values, missing
       HOME, and the ARCHITECTURE §10 derived-path table)*
-- [ ] **P1-02** Implement tolerant `/etc/os-release` parsing with fixtures for Arch, Fedora,
-      Ubuntu, openSUSE, Debian, missing, empty, and malformed files. `[AC-01]`
+- [x] **P1-02** Implement tolerant `/etc/os-release` parsing with fixtures for Arch, Fedora,
+      Ubuntu, openSUSE, Debian, missing, empty, and malformed files. `[AC-01]` *(parser
+      never fails on content: malformed lines are skipped, unknown keys ignored, quotes and
+      shell escapes handled, invalid UTF-8 replaced; only unreadable or oversized files
+      error. Eighteen tests use real-distro fixtures under
+      `tests/fixtures/os-release/` plus a 256 KiB file limit test.)*
 - [ ] **P1-03** Implement package manager detection from pacman/dpkg/rpm/zypper database
       files, returning `Unknown` when absent. `[AC-03]`
 - [ ] **P1-04** Implement session probing: UID, `XDG_SESSION_TYPE`, and root refusal

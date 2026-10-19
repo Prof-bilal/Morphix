@@ -9,4 +9,5 @@
 //! **Filled in by:** P1-01 (`paths.rs`), P1-02 (`os_release.rs`), P1-03 (`package_db.rs`),
 //! P1-04 (`session.rs`), P1-05 (`probe.rs`).
 
+pub mod os_release;
 pub mod paths;
