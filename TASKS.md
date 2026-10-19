@@ -19,9 +19,10 @@
 
 ## Phase 0 — Repository foundation
 
-- [ ] **P0-01** Add repository baseline files: `.gitignore`, `.editorconfig`,
+- [x] **P0-01** Add repository baseline files: `.gitignore`, `.editorconfig`,
       `rust-toolchain.toml` (pinned), `rustfmt.toml`, `LICENSE-MIT`, `LICENSE-APACHE`.
-      *(the two license files are already in place — see ADR-017)*
+      *(the two license files were already in place — see ADR-017; the toolchain is pinned
+      to `1.99.1`)*
 - [ ] **P0-02** Create the Cargo workspace with `crates/morphix-core` and `src-tauri`;
       both packages build with `cargo check`.
 - [ ] **P0-03** Add the `morphix-core` module skeleton from ARCHITECTURE §4 (empty modules,

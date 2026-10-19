@@ -1,3 +1,14 @@
 # ContextGit per-run state (SQLite journal + WAL files, local worktree metadata).
 # The shared instructions live in AGENTS.md and are tracked normally.
 .contextgit/
+
+# Rust build output (workspace-level and per-crate target dirs).
+/target/
+
+# Frontend dependencies and build output.
+/node_modules/
+/dist/
+*.tsbuildinfo
+
+# Tauri build output.
+/src-tauri/target/

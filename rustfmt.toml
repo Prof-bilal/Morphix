@@ -1,0 +1,6 @@
+# Stable-only options; `cargo fmt --all --check` runs in CI with this exact config.
+edition = "2024"
+max_width = 100
+newline_style = "Unix"
+use_field_init_shorthand = true
+use_try_shorthand = true

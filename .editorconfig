@@ -1,0 +1,27 @@
+# Editor configuration for Morphix.
+# Applies to editors that respect EditorConfig; formatting is not enforced here,
+# it is enforced by `cargo fmt --all --check`, `rustfmt.toml`, and prettier-free
+# frontend style (see CONTRIBUTING.md).
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.rs]
+indent_size = 4
+
+[*.{toml,json,yml,yaml}]
+indent_size = 2
+
+# Markdown uses two trailing spaces for hard line breaks; do not strip them.
+[*.md]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab

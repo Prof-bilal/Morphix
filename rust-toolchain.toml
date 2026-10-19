@@ -1,0 +1,6 @@
+# Pinned toolchain (PHASE0.md D-1). Both CI and local builds use this exact version,
+# so a lint or edition change only lands by deliberately editing this file.
+[toolchain]
+channel = "1.99.1"
+components = ["rustfmt", "clippy"]
+profile = "minimal"
