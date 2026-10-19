@@ -86,8 +86,14 @@ logic yet.
       `unsafe`; root is decided from the effective UID and `require_non_root` is the
       mutation gate. `XDG_SESSION_TYPE` maps to a closed Wayland/X11/TTY/Unknown enum; ten
       tests cover classification, malformed status failing closed, and root refusal.)*
-- [ ] **P1-05** Implement `platform::probe::CommandRunner` with fixed argv, absolute binary
+- [x] **P1-05** Implement `platform::probe::CommandRunner` with fixed argv, absolute binary
       candidates, root-owned/non-writable checks, 2 s timeout, and output cap.
+      *(one fixed `--version` probe per variant, no shell or `PATH` lookup; candidates must
+      be non-symlink root-owned files with mode `& 0o022 == 0`; cleared environment,
+      `/dev/null` stdin, 2 s kill, 4 KiB stdout cap. Twelve tests exercise trusted-binary
+      metadata, skipped user-owned binaries, timeout, output cap, stdin, non-zero exit, and
+      token-free errors. The architecture test now fails on `std::process::Command` outside
+      `platform::probe` and on the banned escalation forms in core and the Tauri shell.)*
 - [ ] **P1-06** Define `DesktopAdapter`, `AdapterProbe`, capability support states, and
       `FakeAdapter` with call recording.
 - [ ] **P1-07** Implement Plasma version parsing/normalization and SemVer range evaluation

@@ -345,3 +345,96 @@ fn a_forbidden_fixture_import_is_reported() {
         BTreeSet::from(["core".to_owned(), "errors".to_owned()])
     );
 }
+
+/// Every `.rs` file under `dir`, as `(display path, contents)`.
+fn read_rs_files(root: &Path, display_prefix: &str) -> Vec<(String, String)> {
+    fn walk(dir: &Path, root: &Path, display_prefix: &str, out: &mut Vec<(String, String)>) {
+        let mut entries: Vec<_> = fs::read_dir(dir)
+            .unwrap_or_else(|error| panic!("cannot list {}: {error}", dir.display()))
+            .map(|entry| entry.expect("directory entry").path())
+            .collect();
+        entries.sort();
+        for path in entries {
+            if path.is_dir() {
+                walk(&path, root, display_prefix, out);
+            } else if path.extension().is_some_and(|ext| ext == "rs") {
+                let relative = path
+                    .strip_prefix(root)
+                    .unwrap_or_else(|_| {
+                        panic!("{} is not under {}", path.display(), root.display())
+                    })
+                    .to_string_lossy()
+                    .replace('\\', "/");
+                out.push((format!("{display_prefix}/{relative}"), read(&path)));
+            }
+        }
+    }
+
+    let mut files = Vec::new();
+    walk(root, root, display_prefix, &mut files);
+    files
+}
+
+/// SECURITY.md §7: `std::process::Command` may appear only in `platform::probe`.
+///
+/// This is the check that keeps the allowlist from eroding: a future task that reaches for
+/// `Command` in the desktop adapter fails here before it can ship.
+#[test]
+fn only_the_command_runner_spawns_a_process() {
+    let sources = read_sources();
+    let mut runner_present = false;
+
+    for (path, contents) in &sources {
+        let code = strip_line_comments(contents);
+        let spawns = code.contains("process::Command") || code.contains("Command::new(");
+        if path == "src/platform/probe.rs" {
+            runner_present = spawns;
+            continue;
+        }
+        assert!(
+            !spawns,
+            "{path} spawns a process; only src/platform/probe.rs may (SECURITY.md §7)"
+        );
+    }
+
+    assert!(
+        runner_present,
+        "src/platform/probe.rs must contain the CommandRunner's Command::new call"
+    );
+}
+
+/// The Tauri shell runs with the webview's privileges, so it must stay free of process
+/// spawning and of the banned escalation executables (SECURITY.md §7, T-07).
+#[test]
+fn the_shell_and_core_never_reference_escalation_tools() {
+    let mut targets = vec![(repo_root().join("src-tauri/src"), "src-tauri/src")];
+    targets.push((crate_root().join("src"), "src"));
+
+    let mut scanned = 0;
+    for (root, prefix) in targets {
+        for (path, contents) in read_rs_files(&root, prefix) {
+            scanned += 1;
+            let code = strip_line_comments(&contents);
+            // The runner is the single allowed spawn site; the first test pins that.
+            if path != "src/platform/probe.rs" {
+                for banned in ["Command::new(", "process::Command"] {
+                    assert!(
+                        !code.contains(banned),
+                        "{path} spawns a process; only src/platform/probe.rs may (SECURITY.md §7)"
+                    );
+                }
+            }
+            for banned in ["\"sudo\"", "\"pkexec\"", "sh -c", "bash -c"] {
+                assert!(
+                    !code.contains(banned),
+                    "{path} references the banned escalation form {banned} (SECURITY.md T-07)"
+                );
+            }
+        }
+    }
+
+    assert!(
+        scanned > 0,
+        "no Rust files were scanned; the test would pass vacuously"
+    );
+}

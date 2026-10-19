@@ -18,10 +18,12 @@ shares no code with it, and does not target Windows.
 > skeleton, the error taxonomy (73 stable codes with registry drift tests), the
 > module-boundary test, the Tauri 2 shell answering `get_app_info`, the Vite/React shell
 > with the eight placeholder routes, the `tracing` logging bootstrap, the documentation
-> checker, and CI workflows. The app launches locally. Phase 1 has started with pure XDG and
-> Morphix path resolution (P1-01); no OS, session, package, or desktop detection exists yet,
-> and no pack, planning, snapshot, transaction, or adapter code exists. Everything described
-> below is the intended V0.1/V1 behavior, not a claim about working software. See
+> checker, and CI workflows. The app launches locally. Phase 1's `platform` layer is
+> implemented (XDG and Morphix paths, tolerant `/etc/os-release` parsing, package manager
+> detection, session/UID probing, and the allowlisted version-probe command runner); no
+> desktop/Plasma detection, support verdict, or user-facing status exists yet, and no pack,
+> planning, snapshot, transaction, or adapter code exists. Everything described below is the
+> intended V0.1/V1 behavior, not a claim about working software. See
 > [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
 > implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 
