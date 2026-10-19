@@ -1,0 +1,91 @@
+/*
+ * Design tokens (UI_SPEC.md §13). These are the only source of colour, spacing, radius,
+ * and font values; components must not hardcode a hex value or a pixel spacing.
+ *
+ * Light and dark are selected through `prefers-color-scheme`. An explicit choice in
+ * Settings sets `data-theme` on the root element and overrides the media query.
+ */
+
+:root {
+  /* Spacing, 4px base (--space-1 … --space-8). */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", "Source Code Pro", monospace;
+}
+
+/* Light (default). */
+:root,
+:root[data-theme="light"] {
+  --surface: #f6f7f9;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eceef2;
+  --text: #1b1c1e;
+  --text-muted: #5c6068;
+  --text-inverse: #ffffff;
+  --border: #d9dbe0;
+  --border-strong: #b3b7c0;
+  --accent: #1f6feb;
+  --accent-text: #ffffff;
+  --success: #1a7f37;
+  --warning: #9a6700;
+  --danger: #c62828;
+  --info: #0969da;
+  --focus-ring: #1f6feb;
+
+  color-scheme: light;
+}
+
+/* Dark, either by system preference or by an explicit override in Settings. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: #14161a;
+    --surface-raised: #1c1f24;
+    --surface-sunken: #0f1114;
+    --text: #e8eaee;
+    --text-muted: #a3a9b4;
+    --text-inverse: #14161a;
+    --border: #2c313a;
+    --border-strong: #454c58;
+    --accent: #6aa8ff;
+    --accent-text: #0f1114;
+    --success: #4cc26c;
+    --warning: #e0b341;
+    --danger: #ff7b72;
+    --info: #79b8ff;
+    --focus-ring: #6aa8ff;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface: #14161a;
+  --surface-raised: #1c1f24;
+  --surface-sunken: #0f1114;
+  --text: #e8eaee;
+  --text-muted: #a3a9b4;
+  --text-inverse: #14161a;
+  --border: #2c313a;
+  --border-strong: #454c58;
+  --accent: #6aa8ff;
+  --accent-text: #0f1114;
+  --success: #4cc26c;
+  --warning: #e0b341;
+  --danger: #ff7b72;
+  --info: #79b8ff;
+  --focus-ring: #6aa8ff;
+
+  color-scheme: dark;
+}

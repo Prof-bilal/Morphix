@@ -1,0 +1,131 @@
+/*
+ * Application shell styles. Every colour and spacing value comes from tokens.css
+ * (UI_SPEC.md §13: a component that hardcodes a hex value is a review failure).
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--surface);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: calc(-1 * var(--space-8));
+  z-index: 10;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--accent-text);
+  transition: top 120ms ease;
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 15rem 1fr;
+  height: 100%;
+}
+
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border);
+}
+
+.app-nav__brand {
+  margin: 0 0 var(--space-3);
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.app-nav__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-nav__link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.app-nav__link:hover {
+  background: var(--surface-sunken);
+}
+
+.app-nav__link[aria-current="page"] {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.app-nav__footer {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.app-main {
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.page {
+  max-width: 60rem;
+}
+
+.page__title {
+  margin-top: 0;
+}
+
+.page__lead {
+  color: var(--text-muted);
+}
+
+.page__note {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}

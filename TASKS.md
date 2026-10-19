@@ -1,8 +1,8 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01 through P0-05 are complete. P0-07's Rust half has
-  landed (`get_app_info` and a placeholder window); its `src/api/client.ts` half waits on
-  P0-06. P0-06, P0-08, P0-09 and P0-10 are unchecked.
+- **Status:** Phase 0 in progress. P0-01 through P0-06 are complete. P0-07's Rust half has
+  landed (`get_app_info` and a placeholder window); its `src/api/client.ts` half is next.
+  P0-08, P0-09 and P0-10 are unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -38,8 +38,10 @@
       a meta-test that detects a forbidden fixture import. *(it also checks the module list
       against the ARCHITECTURE §4 tree and refuses any Tauri/GUI crate reference; a
       forbidden `fs -> packs` edge was injected to confirm the test fails)*
-- [ ] **P0-06** Scaffold the Vite + React + TypeScript UI with React Router routes,
-      design tokens, and a smoke test.
+- [x] **P0-06** Scaffold the Vite + React + TypeScript UI with React Router routes,
+      design tokens, and a smoke test. *(eight routes, the token contract, and a
+      four-test shell suite; `npm run typecheck`, `npm run test -- --run`, and
+      `npm run build` pass)*
 - [ ] **P0-07** Scaffold the Tauri 2 shell with `get_app_info`, a placeholder window, and
       `src/api/client.ts` as the only `invoke` call site. *(the shell, command, and window
       config are in place; `src/api/client.ts` lands with P0-06)*
