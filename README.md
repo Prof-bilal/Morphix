@@ -11,19 +11,18 @@ Morphix is an original project. It is conceptually inspired by the *idea* of a
 customization marketplace with safe, inspectable mods, but it is not a port of Windhawk,
 shares no code with it, and does not target Windows.
 
-> ## Project status: Phase 0 in progress
+> ## Project status: Phase 0 tasks complete; awaiting the first hosted CI run
 >
-> **There is no application functionality yet.** The Phase 0 foundation is partly in
-> place: the Cargo workspace, the `morphix-core` module skeleton, the error taxonomy
-> (73 stable codes with registry drift tests), the test that enforces the module
-> boundaries, a Tauri 2 shell that opens the application window and answers `get_app_info`,
-> and the Vite/React shell with the eight placeholder routes, plus the documentation
-> checker and CI workflows. The first hosted CI run and the launch check confirm the Phase 0
-> exit criteria. No detection, pack, planning, snapshot, transaction, or adapter code
-> exists. Everything described below is the intended V0.1/V1 behavior, not a claim about
-> working software. See [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and
-> [TASKS.md](TASKS.md) for the implementation plan, and [DECISIONS.md](DECISIONS.md) for
-> the reasoning behind the scope.
+> **There is no application functionality yet.** Every Phase 0 task is implemented: the
+> Cargo workspace, the `morphix-core` module skeleton, the error taxonomy (73 stable codes
+> with registry drift tests), the module-boundary test, the Tauri 2 shell answering
+> `get_app_info`, the Vite/React shell with the eight placeholder routes, the `tracing`
+> logging bootstrap, the documentation checker, and CI workflows. All local gates pass and
+> the app launches; the first hosted CI run is the remaining Phase 0 exit check. No
+> detection, pack, planning, snapshot, transaction, or adapter code exists. Everything
+> described below is the intended V0.1/V1 behavior, not a claim about working software. See
+> [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
+> implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 
 ---
 

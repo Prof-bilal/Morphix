@@ -1,7 +1,7 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 tasks complete (P0-01 through P0-10). The first hosted CI run and
-  the end-to-end launch check are what prove the Phase 0 exit criteria.
+- **Status:** Phase 0 tasks complete (P0-01 through P0-10). All local gates pass and the
+  app launches; the first hosted CI run is the remaining exit check.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.

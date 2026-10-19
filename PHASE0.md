@@ -1,8 +1,8 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Phase 0 tasks complete (Stages A–G). The first hosted CI run and the
-  end-to-end launch check confirm the phase exit criteria; [TASKS.md](TASKS.md) carries the
-  per-task state.
+- **Status:** Phase 0 tasks complete (Stages A–G). All local gates pass and the app
+  launches; the first hosted CI run is the remaining exit check.
+  [TASKS.md](TASKS.md) carries the per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
   and [PHASES.md](PHASES.md) the phase definition. This file only adds sequencing,
@@ -225,6 +225,14 @@ Two environment notes for this machine, both observed already:
   `env -u PYTHONHOME -u PYTHONPATH python3 tests/check_docs.py`, because the packaged
   shell exports a `PYTHONHOME` that points at its own interpreter and shadows the system
   stdlib. `--self-test` proves the checker fails on a broken copy.
+- `npm run tauri dev` in this session must run as
+  `env -u LD_LIBRARY_PATH -u LD_PRELOAD -u APPDIR -u PYTHONHOME -u PYTHONPATH npm run
+  tauri dev`. The packaged shell's `LD_LIBRARY_PATH` selects its bundled WebKitGTK, whose
+  helper processes are not at the path it derives, so the webview aborts. With the
+  variables unset, the app uses the system WebKitGTK and launches; the remaining
+  `im-wayland.so` and GTK module warnings are cosmetic and come from the same environment.
+  The launch check observed the process stay alive for 60 s with no WebKit or panic error;
+  pixel rendering was not machine-verified.
 - Every test from Stage C onward sets `HOME`, `MORPHIX_DATA_DIR`, and `MORPHIX_STATE_DIR`
   to temporary directories. A test that writes to the real home is a defect, not a
   convenience (TESTING §1.2).
@@ -235,10 +243,10 @@ Criterion, and where it is proven:
 
 | Criterion | Proof |
 | --- | --- |
-| All nine gates in §5 pass locally and in CI | CI run linked in the PR |
+| All nine gates in §5 pass locally and in CI | local: all nine exit 0 on 2026-10-19; CI: first hosted run pending |
 | `tests/architecture.rs` fails on a forbidden import | meta-test plus the demonstrated injection |
-| App launches and shows the placeholder UI | Stage G plus the P0-06 Vite build |
-| Every document linked from README; no doc claims an unimplemented feature | `tests/check_docs.py` |
+| App launches and shows the placeholder UI | Stage G plus P0-06; `tauri dev` launch observed 2026-10-19 (see §5 environment notes) |
+| Every document linked from README; no doc claims an unimplemented feature | `tests/check_docs.py` and its `--self-test` |
 | No domain logic exists | `cargo test` has no planner, pack, snapshot, or transaction tests |
 
 ## 7. Risks
