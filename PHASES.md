@@ -1,9 +1,10 @@
 # Morphix — Implementation Phases
 
 - **Status:** Phase 0 complete; hosted CI run `39295512014` is green. Phase 1 (system
-  detection) is in progress: the `platform` probes are implemented (P1-01…P1-05), while the
-  desktop/Plasma probes and support verdict remain. See [TASKS.md](TASKS.md) for the
-  per-task state.
+  detection) is in progress: the `platform` probes (P1-01…P1-05), version/compatibility
+  parsing (P1-07), and the adapter boundary with capability states (P1-06) are implemented;
+  the Desktop/Plasma probes, the support verdict, and the status UI remain. See
+  [TASKS.md](TASKS.md) for the per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 
