@@ -158,6 +158,7 @@ requests narrow, typed operations and renders the plans and results it receives.
 | [TESTING.md](TESTING.md) | Test strategy, including failure-injection tests |
 | [PHASES.md](PHASES.md) | Implementation phases with exit criteria |
 | [TASKS.md](TASKS.md) | Implementation-ready task checklist |
+| [PHASE0.md](PHASE0.md) | Execution plan for Phase 0: stages, gates, environment |
 | [DECISIONS.md](DECISIONS.md) | Architecture Decision Records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to develop, test, and propose changes |
 | [AGENTS.md](AGENTS.md) | Rules for AI coding agents working in this repository |

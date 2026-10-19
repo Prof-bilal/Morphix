@@ -39,6 +39,9 @@ be met by work from a later phase.
 
 ## Phase 0 — Repository foundation
 
+**Execution plan:** [PHASE0.md](PHASE0.md) sequences the tasks below into reviewable
+stages, lists the verification commands, and records the environment prerequisites.
+
 **Goal:** A buildable workspace with enforced boundaries, CI, a placeholder shell, and the
 documentation baseline in place.
 

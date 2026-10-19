@@ -12,6 +12,7 @@
 - If a task reveals a design contradiction, stop and update the relevant document or add
   an ADR before continuing. Do not improvise architecture in code.
 - Acceptance criteria references (`AC-xx`) point to [MVP.md](MVP.md) §7.
+- Phase 0 sequencing, gates, and environment prerequisites: [PHASE0.md](PHASE0.md).
 - Never weaken a test or a security control to complete a task.
 
 ---
