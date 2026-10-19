@@ -1,7 +1,7 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Phase 0 in progress. Stages A–E and G, and Stage F's logging half (P0-10),
-  have landed. Stage F's CI and docs-checker halves (P0-08, P0-09) are pending, and
+- **Status:** Phase 0 in progress. Stages A–E, G, and Stage F except its CI workflow
+  (P0-10, P0-09) have landed. P0-08, the CI workflow, is pending and
   [TASKS.md](TASKS.md) carries the per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
@@ -170,8 +170,9 @@ npm run build
   Frontend (typecheck, test, build), Docs.
 - `tests/check_docs.py`: capability IDs agree across MVP §4, ARCHITECTURE §6, PACK_SPEC §6;
   ADR sequence and index complete; AC sequence; every internal link resolves; every
-  document appears in the README index; no document claims a capability or command that the
-  repository does not have.
+  document appears in the README index; every command CONTRIBUTING marks available exists
+  and every command it marks planned does not. `--self-test` runs the same checks on a
+  broken copy and asserts both a broken link and a capability mismatch are reported.
 - ADR template in [DECISIONS.md](DECISIONS.md) (next free number is ADR-023).
 - `logging.rs`: `tracing` subscriber writing to the XDG state directory with mode `0600`,
   size-based rotation, and a redaction filter; a test proving a config value and a file
@@ -220,6 +221,10 @@ Two environment notes for this machine, both observed already:
 
 - `git` over HTTPS needs `env -u LD_LIBRARY_PATH -u LD_PRELOAD`, because the packaged
   shell's libcurl shadows the system one (`curl_global_trace` undefined symbol).
+- The documentation checker runs as
+  `env -u PYTHONHOME -u PYTHONPATH python3 tests/check_docs.py`, because the packaged
+  shell exports a `PYTHONHOME` that points at its own interpreter and shadows the system
+  stdlib. `--self-test` proves the checker fails on a broken copy.
 - Every test from Stage C onward sets `HOME`, `MORPHIX_DATA_DIR`, and `MORPHIX_STATE_DIR`
   to temporary directories. A test that writes to the real home is a defect, not a
   convenience (TESTING §1.2).

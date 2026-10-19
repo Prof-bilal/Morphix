@@ -368,7 +368,7 @@ These are mandatory, not optional coverage:
 | Rust | `cargo fmt --all --check`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` |
 | Architecture | `cargo test -p morphix-core --test architecture` |
 | Frontend | `npm ci`, `npm run typecheck`, `npm run test -- --run`, `npm run build` |
-| Docs | internal link check, doc consistency check (`tests/check_docs.py` or equivalent) |
+| Docs | internal link check, doc consistency check (`tests/check_docs.py` or equivalent; run `--self-test` too) |
 | Security | `cargo deny check`, `npm audit --omit=dev`, static process-spawn check |
 | KDE VM | env-gated `cargo test --test kde_integration -- --ignored` |
 | Nightly | fuzz targets, crash-boundary soak, recovery soak |

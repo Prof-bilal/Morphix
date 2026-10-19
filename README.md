@@ -17,8 +17,8 @@ shares no code with it, and does not target Windows.
 > place: the Cargo workspace, the `morphix-core` module skeleton, the error taxonomy
 > (73 stable codes with registry drift tests), the test that enforces the module
 > boundaries, a Tauri 2 shell that opens the application window and answers `get_app_info`,
-> and the Vite/React shell with the eight placeholder routes. CI and the documentation
-> checks are still being added. No detection, pack, planning, snapshot, transaction, or
+> and the Vite/React shell with the eight placeholder routes, plus the documentation
+> checker. CI is still being added. No detection, pack, planning, snapshot, transaction, or
 > adapter code exists. Everything described below is the intended V0.1/V1 behavior, not a
 > claim about working software. See [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and
 > [TASKS.md](TASKS.md) for the implementation plan, and [DECISIONS.md](DECISIONS.md) for

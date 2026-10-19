@@ -1,7 +1,7 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01 through P0-07 and P0-10 are complete. P0-08 and
-  P0-09 are unchecked.
+- **Status:** Phase 0 in progress. P0-01 through P0-07, P0-09 and P0-10 are complete. P0-08
+  is unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -47,8 +47,11 @@
       test; no `fs`, `shell`, or `http` plugin is exposed)*
 - [ ] **P0-08** Add CI workflows for Rust (fmt, clippy `-D warnings`, test), frontend
       (typecheck, test, build), and docs (internal link check).
-- [ ] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and
-      `tests/check_docs.py` (capability IDs, doc links, command names).
+- [x] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and
+      `tests/check_docs.py` (capability IDs, doc links, command names). *(the ADR template
+      and README index already existed; the checker validates links, README coverage, ADR
+      numbering and anchors, AC numbering, the three capability tables, and CONTRIBUTING
+      command availability, with a `--self-test` that proves it fails on a broken copy)*
 - [x] **P0-10** Add `tracing` logging bootstrap with log path, rotation, 0600 mode, and a
       redaction test proving file contents are never logged. *(`logging::init` writes under
       `<state dir>/logs/morphix.log`; six tests cover path, mode, rotation, field

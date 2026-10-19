@@ -65,7 +65,7 @@ Prerequisites for building the app once Phase 0 lands:
 | Typecheck | `npm run typecheck` | yes |
 | Frontend tests | `npm run test -- --run` | yes |
 | Architecture boundary test | `cargo test -p morphix-core --test architecture` | yes |
-| Docs checks | `python3 tests/check_docs.py` | planned (P0-09) |
+| Docs checks | `python3 tests/check_docs.py` | yes |
 | KDE integration tests (VM) | `MORPHIX_KDE_INTEGRATION=1 cargo test -p morphix-core --test kde_integration -- --ignored` | planned (Phase 6) |
 
 Never run integration tests against your live session. Use a disposable VM or a throwaway
