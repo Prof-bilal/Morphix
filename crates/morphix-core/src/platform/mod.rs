@@ -12,3 +12,4 @@
 pub mod os_release;
 pub mod package_db;
 pub mod paths;
+pub mod session;

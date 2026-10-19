@@ -81,8 +81,11 @@ logic yet.
       documented database markers, with the marker kind verified; precedence is pacman,
       dpkg, zypper, rpm. Nine tests use fixtures under `tests/fixtures/package-db/`,
       including every rpm layout, wrong-kind markers, and empty-root `Unknown`.)*
-- [ ] **P1-04** Implement session probing: UID, `XDG_SESSION_TYPE`, and root refusal
-      (`E_RUNNING_AS_ROOT`). `[AC-22]`
+- [x] **P1-04** Implement session probing: UID, `XDG_SESSION_TYPE`, and root refusal
+      (`E_RUNNING_AS_ROOT`). `[AC-22]` *(UIDs are read from `/proc/self/status` without
+      `unsafe`; root is decided from the effective UID and `require_non_root` is the
+      mutation gate. `XDG_SESSION_TYPE` maps to a closed Wayland/X11/TTY/Unknown enum; ten
+      tests cover classification, malformed status failing closed, and root refusal.)*
 - [ ] **P1-05** Implement `platform::probe::CommandRunner` with fixed argv, absolute binary
       candidates, root-owned/non-writable checks, 2 s timeout, and output cap.
 - [ ] **P1-06** Define `DesktopAdapter`, `AdapterProbe`, capability support states, and
