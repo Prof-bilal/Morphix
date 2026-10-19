@@ -286,7 +286,8 @@ future ADR with a defined key distribution and trust-store model.
 - Log fields: timestamp, level, event, transaction id, plan id, pack id, target path,
   config key, error code. Never file contents, never asset bytes, never the user's home
   path beyond what is needed for diagnostics (diagnostics export shows it; the user chooses
-  to share).
+  to share). Fields named in `logging::REDACTED_FIELDS` are replaced with `[redacted]`
+  before the line is written, so a careless call site cannot leak them.
 - Diagnostics export is explicit, writes a single local JSON/ZIP the user selects, and
   includes version, adapter probe, counts, and log excerpts with paths redacted to
   `$HOME` where feasible.

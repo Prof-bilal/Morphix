@@ -23,6 +23,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 semver = "1"
 thiserror = "2"
+tracing = "0.1"
+# `fmt` (and its `registry`/`std` dependency) plus `ansi` only. No `env-filter`, no
+# `json`, no `tracing-log`: the log surface stays small and file-based (SECURITY.md §13).
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }
 
 # Only rules that are safe for every target belong here. The panic-free rules
 # (`clippy::unwrap_used`, `expect_used`, `panic`, `todo`, `unimplemented`) are declared in

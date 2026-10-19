@@ -151,6 +151,9 @@ Additional security tests:
 - TOCTOU test: swap an ancestor directory for a symlink between validation and write where
   the harness can race deterministically; the write must fail rather than escape.
 - Running with `geteuid() == 0` (test double) refuses mutation.
+- Log redaction: a config value and a file body passed as log fields never appear in the
+  output; non-sensitive fields (`transaction_id`, `target`) survive. The active log file is
+  mode `0600` and rotation keeps the configured number of files.
 - Config file that is a symlink ⇒ `E_SYMLINK_TARGET`.
 - Oversized config file ⇒ `E_CONFIG_TOO_LARGE`.
 - Corrupt DB ⇒ mutations blocked, no panic, diagnostics available.

@@ -1,7 +1,7 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01 through P0-07 are complete. P0-08, P0-09 and
-  P0-10 are unchecked.
+- **Status:** Phase 0 in progress. P0-01 through P0-07 and P0-10 are complete. P0-08 and
+  P0-09 are unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -49,8 +49,10 @@
       (typecheck, test, build), and docs (internal link check).
 - [ ] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and
       `tests/check_docs.py` (capability IDs, doc links, command names).
-- [ ] **P0-10** Add `tracing` logging bootstrap with log path, rotation, 0600 mode, and a
-      redaction test proving file contents are never logged.
+- [x] **P0-10** Add `tracing` logging bootstrap with log path, rotation, 0600 mode, and a
+      redaction test proving file contents are never logged. *(`logging::init` writes under
+      `<state dir>/logs/morphix.log`; six tests cover path, mode, rotation, field
+      redaction, and defaults)*
 
 **Phase exit:** CI green; app launches to placeholder; architecture test works; no domain
 logic yet.
