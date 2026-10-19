@@ -76,8 +76,11 @@ logic yet.
       shell escapes handled, invalid UTF-8 replaced; only unreadable or oversized files
       error. Eighteen tests use real-distro fixtures under
       `tests/fixtures/os-release/` plus a 256 KiB file limit test.)*
-- [ ] **P1-03** Implement package manager detection from pacman/dpkg/rpm/zypper database
-      files, returning `Unknown` when absent. `[AC-03]`
+- [x] **P1-03** Implement package manager detection from pacman/dpkg/rpm/zypper database
+      files, returning `Unknown` when absent. `[AC-03]` *(metadata-only checks of the
+      documented database markers, with the marker kind verified; precedence is pacman,
+      dpkg, zypper, rpm. Nine tests use fixtures under `tests/fixtures/package-db/`,
+      including every rpm layout, wrong-kind markers, and empty-root `Unknown`.)*
 - [ ] **P1-04** Implement session probing: UID, `XDG_SESSION_TYPE`, and root refusal
       (`E_RUNNING_AS_ROOT`). `[AC-22]`
 - [ ] **P1-05** Implement `platform::probe::CommandRunner` with fixed argv, absolute binary

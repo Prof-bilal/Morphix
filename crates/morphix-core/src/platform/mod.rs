@@ -10,4 +10,5 @@
 //! P1-04 (`session.rs`), P1-05 (`probe.rs`).
 
 pub mod os_release;
+pub mod package_db;
 pub mod paths;
