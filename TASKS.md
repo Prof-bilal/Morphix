@@ -1,6 +1,6 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01, P0-03 and P0-04 are complete. P0-02 has produced
+- **Status:** Phase 0 in progress. P0-01, P0-03, P0-04 and P0-05 are complete. P0-02 has produced
   the `morphix-core` half of the workspace and still needs `src-tauri`. All other boxes are
   unchecked.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
@@ -35,8 +35,10 @@
 - [x] **P0-04** Implement `ErrorCode`, `MorphixError`, `Result`, and context entries; add
       serde round-trip tests for every code. *(73 codes; tests assert the registry matches
       ARCHITECTURE §12.1 and PACK_SPEC §8, and that operation states match DATABASE.md)*
-- [ ] **P0-05** Add `tests/architecture.rs` enforcing the allowed module edges, including
-      a meta-test that detects a forbidden fixture import.
+- [x] **P0-05** Add `tests/architecture.rs` enforcing the allowed module edges, including
+      a meta-test that detects a forbidden fixture import. *(it also checks the module list
+      against the ARCHITECTURE §4 tree and refuses any Tauri/GUI crate reference; a
+      forbidden `fs -> packs` edge was injected to confirm the test fails)*
 - [ ] **P0-06** Scaffold the Vite + React + TypeScript UI with React Router routes,
       design tokens, and a smoke test.
 - [ ] **P0-07** Scaffold the Tauri 2 shell with `get_app_info`, a placeholder window, and

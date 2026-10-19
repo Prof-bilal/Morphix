@@ -1,6 +1,6 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Working plan. Phase 0 in progress: Stages A–C have landed, and
+- **Status:** Working plan. Phase 0 in progress: Stages A–D have landed, and
   [TASKS.md](TASKS.md) carries the per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
@@ -17,7 +17,7 @@ Verified on 2026-10-19, from a clean tree:
 | Git state | started from `abba431` on `main`, clean, in sync with `origin/main` |
 | Tracked content at plan time | 20 files: 17 Markdown documents, `LICENSE-MIT`, `LICENSE-APACHE`, `.gitignore` |
 | Code at plan time | none — no `*.rs`, `*.toml`, `*.ts`, `*.tsx`, `*.json`, `*.yml`, `*.py`, `*.html`, `*.css`, `*.lock` |
-| Landed since | Stages A–C: baseline files, the workspace with the `morphix-core` module skeleton, and the error taxonomy (73 codes with registry drift tests) |
+| Landed since | Stages A–D: baseline files, the workspace with the `morphix-core` module skeleton, the error taxonomy (73 codes with registry drift tests), and the architecture boundary test |
 | Contracts to satisfy | 32 acceptance criteria, 15 capabilities, 8 UI routes, 41 error codes in [ARCHITECTURE.md](ARCHITECTURE.md) §12.1 plus the validation codes in [PACK_SPEC.md](PACK_SPEC.md) §8, 22 ADRs |
 
 ### Toolchain measured on this machine

@@ -63,7 +63,7 @@ Prerequisites for building the app once Phase 0 lands:
 | Run the desktop app | `npm run tauri dev` | planned (P0-07) |
 | Typecheck | `npm run typecheck` | planned (P0-06) |
 | Frontend tests | `npm run test -- --run` | planned (P0-06) |
-| Architecture boundary test | `cargo test -p morphix-core --test architecture` | planned (P0-05) |
+| Architecture boundary test | `cargo test -p morphix-core --test architecture` | yes |
 | Docs checks | `python3 tests/check_docs.py` | planned (P0-09) |
 | KDE integration tests (VM) | `MORPHIX_KDE_INTEGRATION=1 cargo test -p morphix-core --test kde_integration -- --ignored` | planned (Phase 6) |
 

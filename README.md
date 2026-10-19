@@ -14,12 +14,13 @@ shares no code with it, and does not target Windows.
 > ## Project status: Phase 0 in progress
 >
 > **There is no application functionality yet.** Implementation started with the Phase 0
-> foundation: the Cargo workspace, the `morphix-core` module skeleton, and the error
-> taxonomy (73 stable codes with registry drift tests). No detection, pack, planning,
-> snapshot, transaction, adapter, or UI code exists. Everything described below is the
-> intended V0.1/V1 behavior, not a claim about working software. See [PHASE0.md](PHASE0.md),
-> [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the implementation plan, and
-> [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
+> foundation: the Cargo workspace, the `morphix-core` module skeleton, the error taxonomy
+> (73 stable codes with registry drift tests), and the test that enforces the module
+> boundaries. No detection, pack, planning, snapshot, transaction, adapter, or UI code
+> exists. Everything described below is the intended V0.1/V1 behavior, not a claim about
+> working software. See [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and
+> [TASKS.md](TASKS.md) for the implementation plan, and [DECISIONS.md](DECISIONS.md) for
+> the reasoning behind the scope.
 
 ---
 
