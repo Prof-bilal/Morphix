@@ -11,18 +11,19 @@ Morphix is an original project. It is conceptually inspired by the *idea* of a
 customization marketplace with safe, inspectable mods, but it is not a port of Windhawk,
 shares no code with it, and does not target Windows.
 
-> ## Project status: Phase 0 complete; Phase 1 starting
+> ## Project status: Phase 0 complete; Phase 1 in progress
 >
-> **There is no application functionality yet.** Phase 0 closed with every task implemented
+> **There is no user-facing functionality yet.** Phase 0 closed with every task implemented
 > and hosted CI green (run `39295512014`): the Cargo workspace, the `morphix-core` module
 > skeleton, the error taxonomy (73 stable codes with registry drift tests), the
 > module-boundary test, the Tauri 2 shell answering `get_app_info`, the Vite/React shell
 > with the eight placeholder routes, the `tracing` logging bootstrap, the documentation
-> checker, and CI workflows. The app launches locally. No detection, pack, planning,
-> snapshot, transaction, or adapter code exists. Everything described below is the intended
-> V0.1/V1 behavior, not a claim about working software. See [PHASE0.md](PHASE0.md),
-> [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the implementation plan, and
-> [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
+> checker, and CI workflows. The app launches locally. Phase 1 has started with pure XDG and
+> Morphix path resolution (P1-01); no OS, session, package, or desktop detection exists yet,
+> and no pack, planning, snapshot, transaction, or adapter code exists. Everything described
+> below is the intended V0.1/V1 behavior, not a claim about working software. See
+> [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
+> implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 
 ---
 

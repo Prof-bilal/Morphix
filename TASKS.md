@@ -65,8 +65,11 @@ logic yet.
 
 ## Phase 1 — System detection
 
-- [ ] **P1-01** Implement `platform::paths::XdgPaths` with `MORPHIX_DATA_DIR` /
-      `MORPHIX_STATE_DIR` overrides and unit tests.
+- [x] **P1-01** Implement `platform::paths::XdgPaths` with `MORPHIX_DATA_DIR` /
+      `MORPHIX_STATE_DIR` overrides and unit tests. *(pure resolution with an injected
+      lookup; relative XDG values are ignored per spec, relative Morphix overrides are
+      refused, and nine unit tests cover defaults, overrides, malformed values, missing
+      HOME, and the ARCHITECTURE §10 derived-path table)*
 - [ ] **P1-02** Implement tolerant `/etc/os-release` parsing with fixtures for Arch, Fedora,
       Ubuntu, openSUSE, Debian, missing, empty, and malformed files. `[AC-01]`
 - [ ] **P1-03** Implement package manager detection from pacman/dpkg/rpm/zypper database
