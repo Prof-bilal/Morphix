@@ -1,8 +1,8 @@
 # Morphix — Phase 0 Execution Plan
 
-- **Status:** Phase 0 in progress. Stages A–E, G, and Stage F except its CI workflow
-  (P0-10, P0-09) have landed. P0-08, the CI workflow, is pending and
-  [TASKS.md](TASKS.md) carries the per-task state.
+- **Status:** Phase 0 tasks complete (Stages A–G). The first hosted CI run and the
+  end-to-end launch check confirm the phase exit criteria; [TASKS.md](TASKS.md) carries the
+  per-task state.
 - **Scope:** P0-01 … P0-10 only. No Phase 1 work belongs here.
 - **Relationship to other documents:** [TASKS.md](TASKS.md) stays the checklist of record
   and [PHASES.md](PHASES.md) the phase definition. This file only adds sequencing,

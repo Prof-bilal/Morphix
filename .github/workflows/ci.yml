@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+# A new push to the same ref cancels the previous, still-running check.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Rust (fmt, clippy, test)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # `src-tauri` is a workspace member, so the Tauri system libraries are needed even
+      # for `cargo clippy --workspace`. This is the Linux prerequisite set from the Tauri
+      # documentation.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential \
+            pkg-config \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            librsvg2-dev \
+            libssl-dev
+
+      # The pinned toolchain lives in rust-toolchain.toml; keep this value in sync with it.
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace
+
+  architecture:
+    name: Architecture boundaries
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.99.1
+      - uses: Swatinem/rust-cache@v2
+      # Only `morphix-core` is built, so the Tauri system libraries are not required here.
+      - name: Module boundaries
+        run: cargo test -p morphix-core --test architecture
+
+  frontend:
+    name: Frontend (typecheck, test, build)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Test
+        run: npm run test -- --run
+      - name: Build
+        run: npm run build
+
+  docs:
+    name: Documentation checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check documents
+        run: python3 tests/check_docs.py
+      - name: Prove the checker fails on a broken copy
+        run: python3 tests/check_docs.py --self-test

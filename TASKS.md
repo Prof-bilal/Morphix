@@ -1,7 +1,7 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 in progress. P0-01 through P0-07, P0-09 and P0-10 are complete. P0-08
-  is unchecked.
+- **Status:** Phase 0 tasks complete (P0-01 through P0-10). The first hosted CI run and
+  the end-to-end launch check are what prove the Phase 0 exit criteria.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -45,8 +45,11 @@
       `src/api/client.ts` as the only `invoke` call site. *(the shell renders the Vite
       build; `get_app_info` is covered by a Rust command test and a TypeScript client
       test; no `fs`, `shell`, or `http` plugin is exposed)*
-- [ ] **P0-08** Add CI workflows for Rust (fmt, clippy `-D warnings`, test), frontend
-      (typecheck, test, build), and docs (internal link check).
+- [x] **P0-08** Add CI workflows for Rust (fmt, clippy `-D warnings`, test), frontend
+      (typecheck, test, build), and docs (internal link check). *(`.github/workflows/
+      ci.yml`: rust, architecture, frontend, and docs jobs; the architecture job skips the
+      Tauri system libraries, the rust job installs them; the docs job also runs
+      `--self-test`)*
 - [x] **P0-09** Add the `DECISIONS.md` ADR template, README doc index, and
       `tests/check_docs.py` (capability IDs, doc links, command names). *(the ADR template
       and README index already existed; the checker validates links, README coverage, ADR
