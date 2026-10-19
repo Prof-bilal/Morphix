@@ -181,8 +181,9 @@ crates/morphix-core/src/
 │   ├── mod.rs             # DesktopAdapter trait, AdapterProbe, TargetSpec
 │   ├── probe.rs           # shared probe types, capability support
 │   └── kde/
-│       ├── mod.rs         # KdeAdapter implementation
-│       ├── probe.rs       # Plasma version, session, adapter capability matrix
+│       ├── mod.rs         # Kde module surface
+│       ├── bus.rs         # KdeBus trait, session-bus connection, fake bus
+│       ├── probe.rs       # KDE presence, Plasma version chain, capability matrix
 │       ├── targets.rs     # fixed target map (kind -> XDG/config path)
 │       ├── config.rs      # read/write config values via KconfigFile
 │       ├── kconfig.rs     # KConfig-subset parser/serializer
@@ -466,6 +467,13 @@ After validation the only `Unavailable` entries are panel opacity and cursor siz
 are refused during planning. Icon theme activation is reported as
 `Degraded { PlasmShellRestartRequired }`, which makes the planner emit a
 `restart_required` warning rather than pretending the change is live.
+
+Detection reads the Plasma version from the read-only package database when the distro's
+format is text (pacman `local/*/desc`, dpkg `status`), then falls back to the two
+allowlisted version probes (`plasmashell --version`, then `kwin_wayland --version`).
+RPM/zypper databases are SQLite/BDB and are not parsed in `desktop` because SQL is owned
+by `storage`; those distros go straight to the probes. A missing or unparseable version
+is reported as unknown, never guessed.
 
 ### 9.2 Mechanisms
 

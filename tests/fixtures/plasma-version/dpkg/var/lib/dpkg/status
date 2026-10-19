@@ -1,0 +1,33 @@
+Package: bash
+Status: install ok installed
+Priority: required
+Section: shells
+Installed-Size: 1800
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Architecture: amd64
+Version: 5.2-1
+Description: GNU Bourne Again SHell
+Description-md5: 1234567890abcdef1234567890abcdef
+
+Package: plasma-workspace
+Status: install ok installed
+Priority: optional
+Section: kde
+Installed-Size: 20000
+Maintainer: Kubuntu Developers <kubuntu-devel@lists.ubuntu.com>
+Architecture: amd64
+Version: 4:6.3.5-1
+Depends: kwin-common, plasma-integration
+Description: Plasma Workspace
+Description-md5: 0987654321fedcba0987654321fedcba
+
+Package: plasma-desktop
+Status: install ok installed
+Priority: optional
+Section: kde
+Installed-Size: 30000
+Maintainer: Kubuntu Developers <kubuntu-devel@lists.ubuntu.com>
+Architecture: amd64
+Version: 4:6.3.5-1
+Description: Tools and widgets for the desktop
+Description-md5: abcdef1234567890abcdef1234567890

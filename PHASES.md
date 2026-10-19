@@ -2,9 +2,10 @@
 
 - **Status:** Phase 0 complete; hosted CI run `39295512014` is green. Phase 1 (system
   detection) is in progress: the `platform` probes (P1-01…P1-05), version/compatibility
-  parsing (P1-07), and the adapter boundary with capability states (P1-06) are implemented;
-  the Desktop/Plasma probes, the support verdict, and the status UI remain. See
-  [TASKS.md](TASKS.md) for the per-task state.
+  parsing (P1-07), the adapter boundary with capability states (P1-06), the KDE session-bus
+  presence probe (P1-08), and the Plasma version fallback chain (P1-09) are implemented;
+  the support verdict and the status UI remain. See [TASKS.md](TASKS.md) for the per-task
+  state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 

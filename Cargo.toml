@@ -24,6 +24,10 @@ serde_json = "1"
 semver = "1"
 thiserror = "2"
 tracing = "0.1"
+# KDE interface presence/health checks. The `blocking` API runs on `async-io`, not Tokio:
+# morphix-core is synchronous (ARCHITECTURE.md §8) and must not depend on an async runtime
+# that the Tauri shell would have to share.
+zbus = { version = "5", default-features = false, features = ["async-io", "blocking-api"] }
 # `fmt` (and its `registry`/`std` dependency) plus `ansi` only. No `env-filter`, no
 # `json`, no `tracing-log`: the log surface stays small and file-based (SECURITY.md §13).
 tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi"] }

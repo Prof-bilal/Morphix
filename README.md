@@ -21,11 +21,12 @@ shares no code with it, and does not target Windows.
 > checker, and CI workflows. The app launches locally. Phase 1 is in progress: the
 > `platform` layer (XDG and Morphix paths, tolerant `/etc/os-release` parsing, package
 > manager detection, session/UID probing, and the allowlisted version-probe command
-> runner), Plasma version/compatibility parsing, and the `DesktopAdapter` boundary with
-> capability states are implemented. Desktop/Plasma detection, the support verdict, and any
-> user-facing status are not; no pack, planning, snapshot, transaction, or KDE adapter code
-> exists. Everything described below is the intended V0.1/V1 behavior, not a claim about
-> working software. See
+> runner), Plasma version/compatibility parsing, the `DesktopAdapter` boundary with
+> capability states, the KDE session-bus presence probe behind `KdeBus`, and the Plasma
+> version fallback chain (package database then allowlisted version probes) are
+> implemented. The support verdict and any user-facing status are not; no pack, planning,
+> snapshot, transaction, or KDE adapter write code exists. Everything described below is
+> the intended V0.1/V1 behavior, not a claim about working software. See
 > [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
 > implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 

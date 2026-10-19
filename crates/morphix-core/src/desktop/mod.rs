@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::Result;
 
+pub mod kde;
 pub mod probe;
 
 pub use probe::{

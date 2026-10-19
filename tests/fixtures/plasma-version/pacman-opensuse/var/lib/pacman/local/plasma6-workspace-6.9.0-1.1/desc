@@ -1,0 +1,20 @@
+%NAME%
+plasma6-workspace
+
+%VERSION%
+6.9.0-1.1
+
+%BASE%
+plasma6-workspace
+
+%DESC%
+KDE Plasma Workspace
+
+%URL%
+https://kde.org/plasma-desktop/
+
+%ARCH%
+x86_64
+
+%BUILDDATE%
+1792086888

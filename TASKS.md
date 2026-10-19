@@ -109,10 +109,22 @@ logic yet.
       enforces PACK_SPEC §5.3 (no version below 6.0.0, at least one below 7.0.0) and uses
       the release triple so a 6.4 RC still matches `>=6.0, <7.0`. Twenty tests cover
       partial/malformed versions and the compatibility matrix.)*
-- [ ] **P1-08** Implement KDE DBus presence probing for `org.kde.plasmashell`,
+- [x] **P1-08** Implement KDE DBus presence probing for `org.kde.plasmashell`,
       `org.kde.KWin`, and `org.kde.kglobalaccel` behind a `KdeBus` trait.
-- [ ] **P1-09** Implement the Plasma version fallback chain: package DB → fixed-argv probe;
+      *(`KdeBus` exposes only `has_owner` for the closed `KdeService` set, so a caller
+      cannot name an arbitrary method or bus name. `SessionBus` uses `zbus`'s blocking API
+      on `async-io` with the 2 s policy timeout; connect failure is
+      `E_ADAPTER_UNAVAILABLE`/`session_bus_unavailable`. `FakeBus` configures owners,
+      records calls, and repeats an injected error. Absence is `false`, not an error;
+      a bus failure is never mistaken for absence. Eleven tests.)*
+- [x] **P1-09** Implement the Plasma version fallback chain: package DB → fixed-argv probe;
       report `None` rather than guessing. `[AC-02]`
+      *(pacman `local/*/desc` and dpkg `status` readers strip pkgrel/epoch/revision and
+      cap reads at 1 MiB/64 MiB. Probe output is accepted only as `plasmashell <version>`
+      or `kwin <version>`; `plasmashell` is tried before `kwin_wayland`. RPM/zypper
+      databases are SQLite/BDB and are left to the probe so `desktop` does not take on
+      SQL ownership; the probe still reports the version there. Nine tests plus four
+      fixtures cover normalization, malformed and oversized input, and fallthrough.)*
 - [ ] **P1-10** Implement `system::support` rules and the closed reason enum with a complete
       unit-test matrix. `[AC-04]`
 - [ ] **P1-11** Implement `SystemStatus` DTO, `get_system_status(refresh)`, and short-lived

@@ -239,6 +239,9 @@ Additional rules:
 ## 9. DBus policy
 
 - Only the session bus; no system bus access.
+- The client is `zbus`'s blocking API over `async-io`; no Tokio and no generic
+  "call any method" path. Presence is one typed `org.freedesktop.DBus.NameHasOwner` call
+  per allowlisted service behind `KdeBus`.
 - Only these interfaces are used: `org.kde.KWin` (reconfigure), `org.kde.kglobalaccel`
   (shortcut sync), `org.kde.KGlobalSettings` (notify), `org.kde.plasmashell` (wallpaper
   script), and `org.freedesktop.DBus` (name presence/ping).
