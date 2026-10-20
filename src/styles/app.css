@@ -22,7 +22,7 @@ body {
   line-height: 1.5;
   color: var(--text);
   /* The window itself is transparent (tauri.conf.json); each surface supplies its own
-     translucent background. */
+     opaque background so desktop content cannot show through. */
   background: transparent;
 }
 
@@ -51,11 +51,10 @@ body {
   display: grid;
   grid-template-columns: 15rem 1fr;
   height: 100%;
-  /* Frosted glass: the compositor shows the wallpaper through the ~88% translucent
-     surface, while the blur keeps foreground text legible. */
+  /* Opaque today: CSS backdrop-filter cannot blur the desktop behind a Tauri webview on
+     WebKitGTK, so a translucent shell would show sharp text through the UI. The glass
+     tokens remain the single switch for a future compositor-blur path. */
   background: var(--surface-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  backdrop-filter: blur(18px) saturate(125%);
 }
 
 .app-nav {
@@ -65,8 +64,6 @@ body {
   padding: var(--space-4);
   background: var(--surface-glass-raised);
   border-right: 1px solid var(--border);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
 }
 
 .app-nav__brand {
@@ -315,19 +312,13 @@ body {
   font-size: 0.9em;
 }
 
-/* Accessibility: a user who asks the system for less transparency gets opaque, unblurred
-   surfaces. Contrast is never dependent on the wallpaper. */
+/* Accessibility: a user who asks the system for less transparency gets opaque surfaces.
+   Contrast is never dependent on the wallpaper. */
 @media (prefers-reduced-transparency: reduce) {
   :root,
   :root[data-theme="light"],
   :root[data-theme="dark"] {
     --surface-glass: var(--surface);
     --surface-glass-raised: var(--surface-raised);
-  }
-
-  .app-shell,
-  .app-nav {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
   }
 }

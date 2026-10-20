@@ -500,10 +500,11 @@ the refusal, not "invalid pack".
   pointer; Escape cancels dialogs; no action is bound to a bare `Enter` in a destructive
   context.
 - Contrast: body text ≥ 4.5:1, large text ≥ 3:1, focus ring ≥ 3:1, in both light and dark.
-- Transparency: the window and navigation are translucent (default ~88% opacity, never
-  below 85%) with a backdrop blur. Contrast is judged against the worst-case composited
-  surface, not the unblended token; `prefers-reduced-transparency: reduce` restores opaque
-  surfaces. Transparency is decorative and never the only separation between regions.
+- Transparency: surfaces are opaque. The webview cannot blur the desktop behind a
+  transparent Tauri window, so a translucent shell would show sharp desktop content
+  through the UI and break contrast. `--surface-glass*` remains the single switch if a
+  compositor-blur path is added later; until then it aliases the opaque surface tokens.
+  `prefers-reduced-transparency: reduce` is still honored.
 - Motion: no animated transitions over 150 ms; `prefers-reduced-motion` respected.
 - Text: pack names and descriptions truncate with a title attribute rather than expanding
   layout; no text is rendered in the accent colour alone.
@@ -517,7 +518,7 @@ names, not colours, are used by components:
 
 ```css
 --surface, --surface-raised, --surface-sunken
---surface-glass, --surface-glass-raised      /* translucent window surfaces, ≥85% alpha */
+--surface-glass, --surface-glass-raised      /* opaque aliases today; compositor-blur switch */
 --text, --text-muted, --text-inverse
 --border, --border-strong
 --accent, --accent-text
@@ -529,8 +530,9 @@ names, not colours, are used by components:
 ```
 
 Light and dark are defined through `prefers-color-scheme`, with an explicit override in
-Settings. A component that hardcodes a hex value is a review failure. Translucency values
-live only in `--surface-glass*`; components never set their own alpha or blur.
+Settings. A component that hardcodes a hex value is a review failure. Surface alpha lives
+only in `--surface-glass*`; components never set their own alpha or blur. Those tokens
+currently alias the opaque surfaces because the webview cannot blur the desktop.
 
 ---
 
