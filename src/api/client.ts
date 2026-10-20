@@ -70,15 +70,32 @@ export interface SystemStatus {
 /** A failed IPC call, with the command name preserved for diagnostics. */
 export class IpcError extends Error {
   readonly command: string;
+  readonly code?: string;
+  readonly detail?: unknown;
 
-  constructor(command: string, message: string) {
+  constructor(command: string, message: string, code?: string, detail?: unknown) {
     super(message);
     this.name = "IpcError";
     this.command = command;
+    this.code = code;
+    this.detail = detail;
   }
 }
 
 function toIpcError(command: string, error: unknown): IpcError {
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const structured = error as { code?: unknown; message: unknown; detail?: unknown };
+    if (typeof structured.message === "string") {
+      const code = typeof structured.code === "string" ? structured.code : undefined;
+      const prefix = code === undefined ? "" : `${code}: `;
+      return new IpcError(
+        command,
+        `${command} failed: ${prefix}${structured.message}`,
+        code,
+        structured.detail,
+      );
+    }
+  }
   const message = error instanceof Error ? error.message : String(error);
   return new IpcError(command, `${command} failed: ${message}`);
 }
@@ -103,5 +120,116 @@ export async function getSystemStatus(refresh = false): Promise<SystemStatus> {
     return await invoke<SystemStatus>("get_system_status", { refresh });
   } catch (error) {
     throw toIpcError("get_system_status", error);
+  }
+}
+
+/** Where an available pack came from. */
+export type PackSource = "bundled" | "local";
+
+/** Whether a pack currently validates. */
+export type PackStatus = "valid" | "invalid";
+
+/** Where the pinned integrity hash came from. */
+export type IntegritySource = "declared" | "generated_local";
+
+/** A field-level validation problem. */
+export interface ValidationIssue {
+  code: string;
+  message: string;
+  path?: string;
+  field?: string;
+}
+
+/** Catalog card data returned by `list_packs`. */
+export interface PackSummary {
+  id: string;
+  name: string;
+  version?: string;
+  summary: string;
+  source: PackSource;
+  status: PackStatus;
+  compatibility?: string;
+  capabilities: string[];
+  icon?: string;
+  applied: boolean;
+  integritySource: IntegritySource;
+  issueCount: number;
+}
+
+/** One declared asset in the detail view. */
+export interface AssetView {
+  kind: string;
+  key: string;
+  path: string;
+  installedName: string;
+  isDirectory: boolean;
+  bytes: number;
+}
+
+/** One preview image. */
+export interface PreviewView {
+  caption: string;
+  image: string;
+  absolutePath: string;
+}
+
+/** One declared dependency. */
+export interface DependencyView {
+  id: string;
+  version: string;
+}
+
+/** One declared change, by capability and target kind (AC-08). */
+export interface DeclaredChange {
+  capability: string;
+  kind: string;
+  target: string;
+}
+
+/** Full pack detail returned by `get_pack_detail`. */
+export interface PackDetail {
+  summary: PackSummary;
+  description: string;
+  authors: string[];
+  license: string;
+  homepage?: string;
+  attribution?: string;
+  assets: AssetView[];
+  declaredChanges: DeclaredChange[];
+  previews: PreviewView[];
+  dependencies: DependencyView[];
+  issues: ValidationIssue[];
+  manifestHash?: string;
+  contentHash: string;
+}
+
+/** Lists bundled, installed, and invalid packs. */
+export async function listPacks(): Promise<PackSummary[]> {
+  try {
+    return await invoke<PackSummary[]>("list_packs");
+  } catch (error) {
+    throw toIpcError("list_packs", error);
+  }
+}
+
+/** Returns one pack's detail, including the declared change set. */
+export async function getPackDetail(packId: string): Promise<PackDetail> {
+  try {
+    return await invoke<PackDetail>("get_pack_detail", { packId });
+  } catch (error) {
+    throw toIpcError("get_pack_detail", error);
+  }
+}
+
+/**
+ * Validates and installs a pack from an OS-dialog directory.
+ *
+ * This is the only path-accepting pack call; the UI never asks for a typed path.
+ */
+export async function installLocalPack(directory: string): Promise<PackSummary> {
+  try {
+    return await invoke<PackSummary>("install_local_pack", { directory });
+  } catch (error) {
+    throw toIpcError("install_local_pack", error);
   }
 }

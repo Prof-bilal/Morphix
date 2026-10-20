@@ -9,3 +9,6 @@
 //!
 //! **Filled in by:** P4-01 (`mod.rs` trait + real implementation), P4-02 (`atomic.rs`),
 //! P4-03 (`sandbox.rs`), P4-04 (`tree.rs`), P4-13 (`lock.rs`), `temp.rs`.
+
+pub mod sandbox;
+pub mod tree;

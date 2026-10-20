@@ -31,6 +31,97 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::errors::{ErrorCode, MorphixError, Result};
 
+/// Maximum pack version length in bytes (PACK_SPEC.md §3).
+pub const MAX_PACK_VERSION_BYTES: usize = 64;
+
+/// A strict SemVer 2.0.0 pack version.
+///
+/// Unlike [`PlasmaVersion`], a pack version is never padded or normalized: the manifest
+/// must contain a complete `MAJOR.MINOR.PATCH` version (PACK_SPEC.md §5.2), so `0.1` is
+/// refused rather than silently becoming `0.1.0`.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PackVersion(Version);
+
+impl PackVersion {
+    /// Parses a strict SemVer pack version.
+    ///
+    /// # Errors
+    ///
+    /// Returns `E_INVALID_VERSION` when the value is empty, longer than 64 bytes, or not a
+    /// complete SemVer 2.0.0 version.
+    pub fn parse(text: &str) -> Result<Self> {
+        let text = text.trim();
+        if text.is_empty() {
+            return Err(invalid_pack_version(text, "the version is empty"));
+        }
+        if text.len() > MAX_PACK_VERSION_BYTES {
+            return Err(invalid_pack_version(
+                text,
+                "the version is longer than 64 bytes",
+            ));
+        }
+        let version = Version::parse(text)
+            .map_err(|_| invalid_pack_version(text, "the version is not strict SemVer"))?;
+        Ok(Self(version))
+    }
+
+    /// The SemVer representation.
+    #[must_use]
+    pub fn as_semver(&self) -> &Version {
+        &self.0
+    }
+
+    /// Major, minor, and patch triple, without pre-release or build metadata.
+    #[must_use]
+    pub fn release(&self) -> Version {
+        Version::new(self.0.major, self.0.minor, self.0.patch)
+    }
+}
+
+impl fmt::Display for PackVersion {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.0.fmt(formatter)
+    }
+}
+
+impl FromStr for PackVersion {
+    type Err = MorphixError;
+
+    fn from_str(text: &str) -> Result<Self> {
+        Self::parse(text)
+    }
+}
+
+impl Serialize for PackVersion {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for PackVersion {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error as _;
+
+        let text = String::deserialize(deserializer)?;
+        Self::parse(&text).map_err(D::Error::custom)
+    }
+}
+
+fn invalid_pack_version(text: &str, reason: &'static str) -> MorphixError {
+    MorphixError::new(
+        ErrorCode::InvalidVersion,
+        "the pack version is not a valid SemVer version",
+    )
+    .with_context("value", text)
+    .with_context("reason", reason)
+}
+
 /// The first supported Plasma major version.
 pub const MIN_PLASMA_MAJOR: u64 = 6;
 
@@ -332,5 +423,40 @@ mod tests {
         let error = serde_json::from_str::<PlasmaVersion>("\"not-a-version\"")
             .expect_err("invalid version is rejected");
         assert!(error.to_string().contains("E_INVALID_VERSION"));
+    }
+
+    #[test]
+    fn pack_versions_are_strict_semver_and_never_padded() {
+        use super::PackVersion;
+
+        for text in ["0.1.0", "1.0.0-rc.1", "2.3.4+build.9"] {
+            let version = PackVersion::parse(text).expect("valid pack version");
+            assert_eq!(version.to_string(), text);
+        }
+
+        for text in ["", "0.1", "1", "v1.0.0", "01.2.3", "1.2.3.4", "garbage"] {
+            assert_eq!(
+                PackVersion::parse(text)
+                    .expect_err("invalid pack version")
+                    .code,
+                ErrorCode::InvalidVersion,
+                "value: {text:?}"
+            );
+        }
+        assert!(PackVersion::parse(&"1.0.0".repeat(13)).is_err());
+    }
+
+    #[test]
+    fn pack_version_serde_round_trips() {
+        use super::PackVersion;
+
+        let version = PackVersion::parse("1.2.3-rc.1").expect("version");
+        let json = serde_json::to_string(&version).expect("serialize");
+        assert_eq!(json, "\"1.2.3-rc.1\"");
+        assert_eq!(
+            serde_json::from_str::<PackVersion>(&json).expect("deserialize"),
+            version
+        );
+        assert!(serde_json::from_str::<PackVersion>("\"1.2\"").is_err());
     }
 }

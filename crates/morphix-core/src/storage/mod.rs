@@ -9,3 +9,7 @@
 //! **Filled in by:** P2-01 (`db.rs`, `migrations/0001_init.sql`), P2-11
 //! (`repo/packs.rs`), P2 (`repo/settings.rs`), P5-02 (`repo/transactions.rs`), P4-10
 //! (`repo/snapshots.rs`), P5-13 (`repo/history.rs`).
+
+pub mod db;
+pub mod migrations;
+pub mod repo;

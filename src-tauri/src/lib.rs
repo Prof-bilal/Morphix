@@ -17,9 +17,13 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub fn run() {
     let result = tauri::Builder::default()
         .manage(commands::SystemStatusState::new())
+        .manage(commands::PackState::new())
         .invoke_handler(tauri::generate_handler![
             commands::app::get_app_info,
-            commands::system::get_system_status
+            commands::system::get_system_status,
+            commands::packs::list_packs,
+            commands::packs::get_pack_detail,
+            commands::packs::install_local_pack
         ])
         .run(tauri::generate_context!());
 

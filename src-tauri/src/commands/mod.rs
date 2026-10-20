@@ -9,7 +9,9 @@
 //! commands; P7-02 wires the rest.
 
 pub mod app;
+pub mod packs;
 pub mod system;
 
 pub use app::{AppInfo, get_app_info};
+pub use packs::{PackState, get_pack_detail, install_local_pack, list_packs};
 pub use system::{SystemStatusState, get_system_status};

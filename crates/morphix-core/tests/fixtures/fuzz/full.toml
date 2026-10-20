@@ -1,0 +1,72 @@
+schema_version = 1
+
+[pack]
+id = "dev.example.full"
+name = "Full Declaration Pack"
+version = "1.2.3"
+summary = "Exercises every schema-v1 declaration form."
+description = "A seed manifest that exercises appearance, settings, KWin, shortcuts, panel, and desktop-behaviour declarations."
+authors = ["Morphix Tests", "Second Author"]
+license = "MIT OR Apache-2.0"
+homepage = "https://example.invalid/pack"
+icon = "previews/icon.png"
+
+[compatibility]
+desktop = "kde"
+plasma = ">=6.0, <7.0"
+
+[capabilities]
+requires = [
+  "appearance.wallpaper",
+  "settings.kde_global",
+  "settings.kwin_effects",
+  "settings.shortcuts",
+  "panel.properties",
+  "panel.widgets",
+  "settings.desktop_behavior",
+]
+
+[assets.wallpapers]
+wall = "wallpapers/wall.png"
+
+[appearance]
+wallpaper = "wall"
+
+[[settings]]
+target = "kdeglobals"
+group = "General"
+key = "font"
+value = "Noto Sans,10,-1,5,50,0,0,0,0,0"
+
+[[kwin.effects]]
+id = "blur"
+enabled = true
+
+[[shortcuts]]
+component = "kwin"
+action = "Show Desktop"
+keys = ["Meta+D"]
+
+[panel]
+create = false
+
+[[panel.properties]]
+location = "bottom"
+height = 44
+alignment = "center"
+floating = true
+hiding = "none"
+
+[[panel.widgets]]
+panel = 0
+op = "add"
+type = "org.kde.plasma.digitalclock"
+safe = true
+
+[[desktop_behavior.virtual_desktops]]
+op = "add"
+name = "Work"
+
+[[previews]]
+image = "previews/icon.png"
+caption = "Full declaration preview"

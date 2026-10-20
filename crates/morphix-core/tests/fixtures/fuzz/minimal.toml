@@ -1,0 +1,24 @@
+schema_version = 1
+
+[pack]
+id = "dev.example.minimal"
+name = "Minimal Pack"
+version = "0.1.0"
+summary = "A minimal seed manifest."
+description = "A minimal seed manifest for the parser fuzz harness."
+authors = ["Morphix Tests"]
+license = "MIT"
+icon = "previews/icon.png"
+
+[compatibility]
+desktop = "kde"
+plasma = ">=6.0, <7.0"
+
+[capabilities]
+requires = []
+
+[assets]
+
+[[previews]]
+image = "previews/icon.png"
+caption = "Minimal"

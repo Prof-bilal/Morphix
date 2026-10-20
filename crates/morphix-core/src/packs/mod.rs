@@ -11,4 +11,13 @@
 //! (`compatibility.rs`), P2-10 (`validator.rs`), P2-06 (`integrity.rs`), P2-11 (`store.rs`),
 //! P2-12 (`catalog.rs`).
 
+pub mod catalog;
 pub mod compatibility;
+pub mod integrity;
+pub mod manifest;
+pub mod parser;
+pub mod path;
+pub mod report;
+pub mod store;
+pub mod structure;
+pub mod validator;

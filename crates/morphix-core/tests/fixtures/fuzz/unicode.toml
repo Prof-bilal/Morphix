@@ -1,0 +1,28 @@
+schema_version = 1
+
+[pack]
+id = "dev.example.unicode"
+name = "Morphix — naïve café ☕"
+version = "1.0.0"
+summary = "Unicode in every string field, including combining marks and emoji."
+description = "A seed manifest with multibyte UTF-8 so truncation and byte flipping exercise the decoder boundary. العربية, 日本語, עברית, and e\u0301 all appear here."
+authors = ["Zoë Ångström", "李雷"]
+license = "MIT"
+icon = "previews/icon.png"
+
+[compatibility]
+desktop = "kde"
+plasma = ">=6.0, <7.0"
+
+[capabilities]
+requires = ["appearance.wallpaper"]
+
+[assets.wallpapers]
+wall = "wallpapers/wall.png"
+
+[appearance]
+wallpaper = "wall"
+
+[[previews]]
+image = "previews/icon.png"
+caption = "Aperçu — プレビュー"

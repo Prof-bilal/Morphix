@@ -54,6 +54,12 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
+      # P2-15: a deterministic 60-second mutation run over the untrusted manifest
+      # boundary. Kept out of `cargo test --workspace` so the normal suite stays fast.
+      - name: Manifest parser fuzz (60s)
+        timeout-minutes: 3
+        run: cargo test -p morphix-core --test parser_fuzz -- --ignored --nocapture
+
   architecture:
     name: Architecture boundaries
     runs-on: ubuntu-24.04

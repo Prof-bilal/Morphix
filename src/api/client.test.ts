@@ -1,7 +1,15 @@
 import { invoke } from "@tauri-apps/api/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getAppInfo, getSystemStatus, IpcError, type SystemStatus } from "./client";
+import {
+  getAppInfo,
+  getPackDetail,
+  getSystemStatus,
+  installLocalPack,
+  IpcError,
+  listPacks,
+  type SystemStatus,
+} from "./client";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
@@ -90,6 +98,59 @@ describe("getSystemStatus", () => {
       name: "IpcError",
       command: "get_system_status",
       message: "get_system_status failed: no session bus",
+    });
+  });
+});
+
+describe("pack catalog and install", () => {
+  beforeEach(() => {
+    invokeMock.mockReset();
+  });
+
+  it("lists packs through the documented command", async () => {
+    invokeMock.mockResolvedValue([]);
+
+    await expect(listPacks()).resolves.toEqual([]);
+    expect(invokeMock).toHaveBeenCalledExactlyOnceWith("list_packs");
+  });
+
+  it("requests one pack detail by its camelCase argument", async () => {
+    const detail = { summary: { id: "dev.example.one" } };
+    invokeMock.mockResolvedValue(detail);
+
+    await expect(getPackDetail("dev.example.one")).resolves.toEqual(detail);
+    expect(invokeMock).toHaveBeenCalledExactlyOnceWith("get_pack_detail", {
+      packId: "dev.example.one",
+    });
+  });
+
+  it("installs only through the path command", async () => {
+    invokeMock.mockResolvedValue({ id: "dev.example.one" });
+
+    await installLocalPack("/tmp/pack");
+    expect(invokeMock).toHaveBeenCalledExactlyOnceWith("install_local_pack", {
+      directory: "/tmp/pack",
+    });
+  });
+
+  it("keeps the validation code and issue detail from a rejected install", async () => {
+    invokeMock.mockRejectedValue({
+      code: "E_REQUIRED_FILE_MISSING",
+      message: "the pack failed validation; nothing was installed",
+      detail: {
+        issues: [{ code: "E_REQUIRED_FILE_MISSING", path: "README.md" }],
+      },
+    });
+
+    const error = await installLocalPack("/tmp/pack").catch((failure: unknown) => failure);
+    expect(error).toBeInstanceOf(IpcError);
+    expect(error).toMatchObject({
+      name: "IpcError",
+      command: "install_local_pack",
+      code: "E_REQUIRED_FILE_MISSING",
+      detail: {
+        issues: [{ code: "E_REQUIRED_FILE_MISSING", path: "README.md" }],
+      },
     });
   });
 });
