@@ -60,6 +60,41 @@ impl KdePresence {
     }
 }
 
+/// The KDE configuration files detection requires to be readable.
+///
+/// Only presence/readability is reported; contents are never read here. Write support for
+/// these files belongs to the Phase 6 target map.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct KdeConfigPresence {
+    /// `kdeglobals` is an existing, readable regular file.
+    pub kdeglobals: bool,
+    /// `kwinrc` is an existing, readable regular file.
+    pub kwinrc: bool,
+}
+
+/// The KDE config files whose readability the support gate requires.
+pub const KDEGLOBALS_FILE: &str = "kdeglobals";
+/// The KWin config file whose readability the support gate requires.
+pub const KWINRC_FILE: &str = "kwinrc";
+
+/// Checks `kdeglobals` and `kwinrc` under the given XDG config directory.
+///
+/// Read-only: opening the file proves it is readable, and does not parse or log contents.
+/// Symlinks are followed like any other read; refusing symlinked *writes* is a separate
+/// rule that applies to the write path.
+#[must_use]
+pub fn probe_config_presence(config_home: &Path) -> KdeConfigPresence {
+    KdeConfigPresence {
+        kdeglobals: is_readable_file(&config_home.join(KDEGLOBALS_FILE)),
+        kwinrc: is_readable_file(&config_home.join(KWINRC_FILE)),
+    }
+}
+
+fn is_readable_file(path: &Path) -> bool {
+    std::fs::metadata(path).is_ok_and(|metadata| metadata.is_file())
+        && std::fs::File::open(path).is_ok()
+}
+
 /// Queries the three KDE service names through the supplied bus.
 ///
 /// # Errors
@@ -302,7 +337,7 @@ mod tests {
 
     use super::{
         KdePresence, debian_upstream, detect_with, pacman_upstream, parse_probe_version,
-        probe_presence,
+        probe_config_presence, probe_presence,
     };
     use crate::core::versions::PlasmaVersion;
     use crate::desktop::kde::bus::{FakeBus, KdeService};
@@ -384,6 +419,54 @@ mod tests {
         let returned = probe_presence(&bus).expect_err("bus error propagates");
         assert_eq!(returned.code, ErrorCode::AdapterUnavailable);
         assert_eq!(bus.calls().len(), 1, "the first query stops the probe");
+    }
+
+    #[test]
+    fn config_presence_requires_readable_regular_files() {
+        let home = tempfile::tempdir().expect("tempdir");
+        assert_eq!(
+            probe_config_presence(home.path()),
+            super::KdeConfigPresence::default(),
+            "an empty config dir has neither file"
+        );
+
+        std::fs::write(home.path().join(super::KDEGLOBALS_FILE), "[General]\n")
+            .expect("write kdeglobals");
+        std::fs::write(home.path().join(super::KWINRC_FILE), "[Compositing]\n")
+            .expect("write kwinrc");
+
+        assert_eq!(
+            probe_config_presence(home.path()),
+            super::KdeConfigPresence {
+                kdeglobals: true,
+                kwinrc: true,
+            }
+        );
+    }
+
+    #[test]
+    fn a_directory_named_like_a_config_file_is_not_presence() {
+        let home = tempfile::tempdir().expect("tempdir");
+        std::fs::create_dir(home.path().join(super::KDEGLOBALS_FILE)).expect("create directory");
+        std::fs::write(home.path().join(super::KWINRC_FILE), "[Compositing]\n")
+            .expect("write kwinrc");
+
+        let presence = probe_config_presence(home.path());
+        assert!(!presence.kdeglobals);
+        assert!(presence.kwinrc);
+    }
+
+    #[test]
+    fn config_presence_performs_no_writes() {
+        let home = tempfile::tempdir().expect("tempdir");
+        let _ = probe_config_presence(home.path());
+
+        assert_eq!(
+            std::fs::read_dir(home.path())
+                .expect("read config dir")
+                .count(),
+            0
+        );
     }
 
     #[test]

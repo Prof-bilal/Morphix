@@ -13,6 +13,7 @@ pub mod probe;
 
 pub use bus::{FakeBus, KDE_BUS_TIMEOUT, KdeBus, KdeService, SessionBus};
 pub use probe::{
-    DPKG_STATUS_DB, KdePresence, PACMAN_LOCAL_DB, detect_plasma_version, parse_probe_version,
-    probe_plasma_version, probe_presence,
+    DPKG_STATUS_DB, KDEGLOBALS_FILE, KWINRC_FILE, KdeConfigPresence, KdePresence, PACMAN_LOCAL_DB,
+    detect_plasma_version, parse_probe_version, probe_config_presence, probe_plasma_version,
+    probe_presence,
 };

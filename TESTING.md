@@ -78,6 +78,13 @@ unreadable, or the process dies mid-write. Success-path coverage alone is not ac
   path, absolute path, traversal path, uppercase hex, wrong separator.
 - Property tests (proptest): parser never panics for arbitrary bytes up to 256 KiB;
   path validator never accepts a path that escapes the pack root.
+- `system::support` / `system::detect`: every reason reachable through an input mutation;
+  suppression when the bus or plasmashell is absent; independent root/data-dir failures;
+  cache hit, refresh, zero TTL, and uncached failure; DTO camelCase shape; data-directory
+  probe removes its file.
+- Detection no-write suite: snapshot a temporary tree before and after every injected
+  probe. The only permitted write is the zero-byte data-directory probe, which must be
+  gone afterwards; no journal or mutation marker may appear.
 
 ### 4.2 Planner
 

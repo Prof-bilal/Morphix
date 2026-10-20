@@ -134,6 +134,182 @@ body {
   font-size: 0.9rem;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Dashboard system-status card (UI_SPEC.md §5.1). */
+.status-card {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-glass-raised);
+}
+
+.status-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.status-card__header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.status-card__button {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.status-card__button:hover:not(:disabled) {
+  background: var(--surface-sunken);
+}
+
+.status-card__button:disabled {
+  color: var(--text-muted);
+  cursor: progress;
+}
+
+.status-card__verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.status-card__verdict p {
+  margin: 0;
+}
+
+.status-badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge--supported {
+  background: var(--success);
+  color: var(--text-inverse);
+}
+
+.status-badge--unverified {
+  background: var(--warning);
+  color: var(--text-inverse);
+}
+
+.status-badge--unsupported {
+  background: var(--danger);
+  color: var(--text-inverse);
+}
+
+.status-banner {
+  margin-top: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.status-banner p {
+  margin: var(--space-1) 0 0;
+}
+
+.status-banner a {
+  display: inline-block;
+  margin-top: var(--space-2);
+  color: var(--accent);
+}
+
+.status-banner--root,
+.status-banner--error {
+  border-color: var(--danger);
+}
+
+.status-banner--root strong,
+.status-banner--error strong {
+  color: var(--danger);
+}
+
+.status-banner--unsupported {
+  border-color: var(--warning);
+}
+
+.status-card__note {
+  margin: var(--space-3) 0 0;
+  color: var(--text-muted);
+}
+
+.status-card__reasons {
+  margin: var(--space-3) 0 0;
+  padding-left: var(--space-5);
+}
+
+.status-card__reasons code {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+}
+
+.status-card__why {
+  margin-top: var(--space-3);
+}
+
+.status-card__why summary {
+  cursor: pointer;
+}
+
+.status-facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-3) 0 0;
+}
+
+.status-facts dt {
+  color: var(--text-muted);
+}
+
+.status-facts dd {
+  margin: 0;
+}
+
+.status-card__loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.status-card__skeleton {
+  display: block;
+  width: 60%;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.status-card__skeleton--short {
+  width: 35%;
+}
+
 .code {
   font-family: var(--font-mono);
   font-size: 0.9em;

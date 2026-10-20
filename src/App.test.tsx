@@ -1,9 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
+
+// The shell tests are about navigation, not detection. A pending status keeps the card in
+// its loading state so no asynchronous state update happens after a navigation test.
+vi.mock("./api/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./api/client")>();
+  return {
+    ...actual,
+    getSystemStatus: vi.fn(() => new Promise(() => {})),
+  };
+});
 
 function renderShell(initialPath = "/") {
   return render(

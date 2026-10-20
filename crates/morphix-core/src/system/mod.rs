@@ -8,3 +8,14 @@
 //! **Must never depend on:** `transactions`, `packs`.
 //!
 //! **Filled in by:** P1-10 (`support.rs`), P1-11 (`detect.rs`).
+
+pub mod detect;
+pub mod support;
+
+pub use detect::{
+    DetectionInputs, DistroInfo, SYSTEM_STATUS_TTL, SystemStatus, SystemStatusCache,
+    assemble_status, detect, probe_data_dir_writable,
+};
+pub use support::{
+    Architecture, SupportInputs, SupportLevel, SupportReason, SupportReport, evaluate,
+};

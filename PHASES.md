@@ -1,11 +1,12 @@
 # Morphix — Implementation Phases
 
 - **Status:** Phase 0 complete; hosted CI run `39295512014` is green. Phase 1 (system
-  detection) is in progress: the `platform` probes (P1-01…P1-05), version/compatibility
-  parsing (P1-07), the adapter boundary with capability states (P1-06), the KDE session-bus
-  presence probe (P1-08), and the Plasma version fallback chain (P1-09) are implemented;
-  the support verdict and the status UI remain. See [TASKS.md](TASKS.md) for the per-task
-  state.
+  detection) is implemented: P1-01…P1-13 are complete, including the support verdict with
+  its closed reason set, the `SystemStatus` IPC command and cache, the Dashboard status
+  card, and the zero-write detection suite. A real CachyOS session (Plasma 6.8.0, Wayland,
+  x86_64) reports `Supported`; the Plasma 5 VM refusal run is still pending. No pack,
+  planning, snapshot, transaction, or KDE adapter write code exists. See
+  [TASKS.md](TASKS.md) for the per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 

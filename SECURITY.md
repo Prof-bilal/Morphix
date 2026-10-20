@@ -211,6 +211,11 @@ Writable roots (defense in depth):
 Primary control is the **fixed target map**, not the root allowlist. A path is writable
 only if it is the exact resolved target of an operation kind:
 
+Detection is read-only with one documented exception: the data-directory writability probe
+creates a zero-byte file with `create_new` inside `~/.local/share/morphix/`, then removes
+it. It never writes to KDE config, the pack store, or anywhere outside the Morphix data
+root, and the detection suite snapshots a temporary tree to prove no other write occurs.
+
 | Kind | Target |
 | --- | --- |
 | Color scheme | `~/.local/share/color-schemes/<slug>-<key>.colors` |

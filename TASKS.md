@@ -125,16 +125,40 @@ logic yet.
       databases are SQLite/BDB and are left to the probe so `desktop` does not take on
       SQL ownership; the probe still reports the version there. Nine tests plus four
       fixtures cover normalization, malformed and oversized input, and fallthrough.)*
-- [ ] **P1-10** Implement `system::support` rules and the closed reason enum with a complete
+- [x] **P1-10** Implement `system::support` rules and the closed reason enum with a complete
       unit-test matrix. `[AC-04]`
-- [ ] **P1-11** Implement `SystemStatus` DTO, `get_system_status(refresh)`, and short-lived
+      *(`SupportLevel` is `supported`/`unverified`/`unsupported`; the 15 reasons are a closed
+      `SCREAMING_SNAKE_CASE` set. A missing bus suppresses DBus/config reasons, a missing
+      plasmashell suppresses interface/version reasons, and independent root/data-dir
+      failures are reported together. The validated subset is Plasma 6.8.x + Wayland +
+      x86_64; a known multi-screen setup is unverified, an unknown screen count is not.
+      The matrix test reaches every reason through an input mutation, and serialization
+      tests pin the wire names.)*
+- [x] **P1-11** Implement `SystemStatus` DTO, `get_system_status(refresh)`, and short-lived
       caching.
-- [ ] **P1-12** Build the Dashboard status card and unsupported banner; keep catalog
+      *(`SystemStatus` carries `supported`, `support`, `distro`, `packageManager`,
+      `plasmaVersion`, `plasmashellRunning`, and `sessionType` in camelCase.
+      `system::detect` combines OS, session, package DB, DBus, config, and data-dir facts;
+      a connected bus that fails a presence query is `E_ADAPTER_UNAVAILABLE`, never a false
+      `NO_PLASMA`. `SystemStatusCache` is a 30 s Mutex cache that never stores a failure;
+      the command runs detection on `spawn_blocking`. Detect/cache has 12 tests, config
+      presence 3, and the Tauri state 1.)*
+- [x] **P1-12** Build the Dashboard status card and unsupported banner; keep catalog
       reachable in read-only mode. `[AC-04]`
-- [ ] **P1-13** Add a detection suite asserting zero filesystem writes and no mutations.
+      *(`SystemStatusCard` renders loading, supported, unverified, unsupported, root, and
+      error states. Each reason is shown as code plus explanation; supported facts are
+      collapsed under "Why this is supported"; the refusal banner links to the catalog;
+      Re-check passes `refresh: true`. Six component tests cover the states and the retry
+      path. The shell test mocks a pending status so navigation tests stay synchronous.)*
+- [x] **P1-13** Add a detection suite asserting zero filesystem writes and no mutations.
+      *(`tests/detection_no_writes.rs` snapshots a temp root before and after every injected
+      detection path. The approved data-directory probe is the only write: a zero-byte
+      `create_new` file that is removed, including when the directory is reused. The pure
+      `assemble_status` path is also asserted to create no journal or applied marker.)*
 
 **Phase exit:** AC-01…AC-04 pass; real Plasma 6 reports Supported; Plasma 5 VM reports the
-correct refusal.
+correct refusal. Detection performs no persistent writes: the data-directory probe is
+created and removed, and a tree snapshot confirms nothing else changes.
 
 ## Phase 2 — Pack spec, parser, validator, store
 

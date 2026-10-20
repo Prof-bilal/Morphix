@@ -183,7 +183,7 @@ crates/morphix-core/src/
 │   └── kde/
 │       ├── mod.rs         # Kde module surface
 │       ├── bus.rs         # KdeBus trait, session-bus connection, fake bus
-│       ├── probe.rs       # KDE presence, Plasma version chain, capability matrix
+│       ├── probe.rs       # KDE presence, config presence, Plasma version chain
 │       ├── targets.rs     # fixed target map (kind -> XDG/config path)
 │       ├── config.rs      # read/write config values via KconfigFile
 │       ├── kconfig.rs     # KConfig-subset parser/serializer
@@ -246,8 +246,8 @@ crates/morphix-core/src/
 │       └── settings.rs
 ├── system/
 │   ├── mod.rs
-│   ├── detect.rs          # orchestrates distro/desktop/package probes
-│   └── support.rs         # support verdict rules
+│   ├── detect.rs          # probes, SystemStatus DTO, short-lived cache
+│   └── support.rs         # support verdict rules and closed reason set
 └── logging.rs             # tracing setup, redaction, log path
 ```
 

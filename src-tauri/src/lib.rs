@@ -16,7 +16,11 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let result = tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![commands::app::get_app_info])
+        .manage(commands::SystemStatusState::new())
+        .invoke_handler(tauri::generate_handler![
+            commands::app::get_app_info,
+            commands::system::get_system_status
+        ])
         .run(tauri::generate_context!());
 
     if let Err(error) = result {

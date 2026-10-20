@@ -9,5 +9,7 @@
 //! commands; P7-02 wires the rest.
 
 pub mod app;
+pub mod system;
 
 pub use app::{AppInfo, get_app_info};
+pub use system::{SystemStatusState, get_system_status};
