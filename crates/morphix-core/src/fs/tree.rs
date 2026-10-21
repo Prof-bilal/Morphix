@@ -37,6 +37,22 @@ pub enum EntryKind {
     Other,
 }
 
+impl EntryKind {
+    /// Classifies an observed file type without following symbolic links.
+    #[must_use]
+    pub fn from_file_type(file_type: &std::fs::FileType) -> Self {
+        if file_type.is_symlink() {
+            Self::Symlink
+        } else if file_type.is_dir() {
+            Self::Directory
+        } else if file_type.is_file() {
+            Self::File
+        } else {
+            Self::Other
+        }
+    }
+}
+
 /// One inspected tree entry.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TreeEntry {
@@ -395,6 +411,123 @@ pub fn remove_tree(path: &Path) -> Result<()> {
     }
 }
 
+/// Removes a directory tree only when the live state still matches `expected`.
+///
+/// `expected` is the snapshot of the state the caller believes is live: the recorded
+/// post-state for a rollback, or the captured pre-state for an undo. Every live entry
+/// must match on relative path, kind, and (for files) content hash; an extra, missing,
+/// or changed entry means something newer touched the tree, and removal is refused
+/// with `E_ROLLBACK_CONFLICT` instead of destroying it (TRANSACTIONS.md invariant 7).
+/// Directory modes are excluded from the comparison: modes are re-applied by restore,
+/// and a bare `chmod` is not content worth refusing over.
+///
+/// A symlinked root is refused with `E_SYMLINK_TARGET`; a missing path is already
+/// gone and returns success. The parent directory is fsynced after removal.
+///
+/// # Errors
+///
+/// Returns `E_ROLLBACK_CONFLICT` on drift, `E_SYMLINK_TARGET` for a symlinked root,
+/// and a typed I/O error when the tree cannot be inspected or removed.
+pub fn remove_owned_tree(path: &Path, expected: &TreeSnapshot) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            return Err(MorphixError::new(
+                ErrorCode::SymlinkTarget,
+                "Morphix refuses to remove through a symbolic link",
+            )
+            .with_context("path", path.display().to_string()));
+        }
+        Ok(metadata) if metadata.file_type().is_dir() => {}
+        Ok(_) => {
+            return Err(MorphixError::new(
+                ErrorCode::RollbackConflict,
+                "the path is not the recorded directory tree",
+            )
+            .with_context("path", path.display().to_string()));
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(io_error(path, &error)),
+    }
+    let live = snapshot(path)?;
+    confirm_tree_matches(&live, expected, path)?;
+    remove_tree(path)?;
+    if let Some(parent) = path.parent() {
+        sync_dir(parent)?;
+    }
+    Ok(())
+}
+
+/// Removes a single file only when its content still matches `expected_hash`.
+///
+/// Same contract as [`remove_owned_tree`]: drift is refused with
+/// `E_ROLLBACK_CONFLICT`, a symlinked path with `E_SYMLINK_TARGET`, and a missing
+/// file returns success.
+///
+/// # Errors
+///
+/// Returns `E_ROLLBACK_CONFLICT` on drift, `E_SYMLINK_TARGET` for a symlink, and a
+/// typed I/O error when the file cannot be inspected or removed.
+pub fn remove_owned_file(path: &Path, expected_hash: &str) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            return Err(MorphixError::new(
+                ErrorCode::SymlinkTarget,
+                "Morphix refuses to remove through a symbolic link",
+            )
+            .with_context("path", path.display().to_string()));
+        }
+        Ok(metadata) if metadata.file_type().is_file() => {}
+        Ok(_) => {
+            return Err(MorphixError::new(
+                ErrorCode::RollbackConflict,
+                "the path is not the recorded file",
+            )
+            .with_context("path", path.display().to_string()));
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(io_error(path, &error)),
+    }
+    let live_hash = hash_file(path)?;
+    if live_hash != expected_hash {
+        return Err(MorphixError::new(
+            ErrorCode::RollbackConflict,
+            "the file changed since it was recorded; refusing to remove it",
+        )
+        .with_context("path", path.display().to_string()));
+    }
+    fs::remove_file(path).map_err(|error| io_error(path, &error))?;
+    if let Some(parent) = path.parent() {
+        sync_dir(parent)?;
+    }
+    Ok(())
+}
+
+/// Compares two snapshots entry by entry: same relative paths, same kinds, same file
+/// hashes. Directory modes are deliberately excluded (see [`remove_owned_tree`]).
+fn confirm_tree_matches(live: &TreeSnapshot, expected: &TreeSnapshot, root: &Path) -> Result<()> {
+    use std::collections::BTreeMap;
+
+    let fingerprint = |entry: &TreeEntry| (entry.kind, entry.hash.clone());
+    let live_map: BTreeMap<&str, (EntryKind, Option<String>)> = live
+        .entries
+        .iter()
+        .map(|entry| (entry.relative.as_str(), fingerprint(entry)))
+        .collect();
+    let expected_map: BTreeMap<&str, (EntryKind, Option<String>)> = expected
+        .entries
+        .iter()
+        .map(|entry| (entry.relative.as_str(), fingerprint(entry)))
+        .collect();
+    if live_map != expected_map {
+        return Err(MorphixError::new(
+            ErrorCode::RollbackConflict,
+            "the tree changed since it was recorded; refusing to remove it",
+        )
+        .with_context("path", root.display().to_string()));
+    }
+    Ok(())
+}
+
 /// fsyncs a directory so a completed rename or file creation is durable.
 ///
 /// # Errors
@@ -524,7 +657,10 @@ mod tests {
 
     use std::os::unix::fs::PermissionsExt;
 
-    use super::{EntryKind, TreeLimits, copy_tree_no_follow, remove_tree, sha256_hex, snapshot};
+    use super::{
+        EntryKind, TreeLimits, copy_tree_no_follow, remove_owned_file, remove_owned_tree,
+        remove_tree, sha256_hex, snapshot,
+    };
     use crate::errors::ErrorCode;
 
     fn write(path: &std::path::Path, contents: &[u8]) {
@@ -679,5 +815,87 @@ mod tests {
         remove_tree(&link).expect("remove link");
         assert!(!link.exists());
         assert!(outside.exists(), "the link target must survive");
+    }
+
+    #[test]
+    fn owned_removal_requires_an_exact_match() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let root = directory.path().join("owned");
+        write(&root.join("sub/one.txt"), b"one");
+        write(&root.join("two.txt"), b"two");
+        let recorded = snapshot(&root).expect("recorded");
+
+        remove_owned_tree(&root, &recorded).expect("remove owned");
+        assert!(!root.exists());
+        // Removing again is already-gone, not an error.
+        remove_owned_tree(&root, &recorded).expect("idempotent");
+    }
+
+    #[test]
+    fn owned_removal_refuses_any_drift() {
+        for mutate in [
+            |root: &std::path::Path| write(&root.join("two.txt"), b"changed"),
+            |root: &std::path::Path| write(&root.join("extra.txt"), b"newer"),
+            |root: &std::path::Path| std::fs::remove_file(root.join("two.txt")).expect("drop"),
+        ] {
+            let directory = tempfile::tempdir().expect("tempdir");
+            let root = directory.path().join("owned");
+            write(&root.join("sub/one.txt"), b"one");
+            write(&root.join("two.txt"), b"two");
+            let recorded = snapshot(&root).expect("recorded");
+
+            mutate(&root);
+            let error = remove_owned_tree(&root, &recorded).expect_err("drift refused");
+            assert_eq!(error.code, ErrorCode::RollbackConflict);
+            assert!(root.exists(), "a refused removal must leave the tree alone");
+        }
+    }
+
+    #[test]
+    fn owned_removal_refuses_links_and_type_changes() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let root = directory.path().join("owned");
+        write(&root.join("one.txt"), b"one");
+        let recorded = snapshot(&root).expect("recorded");
+
+        let link = directory.path().join("link");
+        std::os::unix::fs::symlink(&root, &link).expect("symlink");
+        assert_eq!(
+            remove_owned_tree(&link, &recorded)
+                .expect_err("link root")
+                .code,
+            ErrorCode::SymlinkTarget
+        );
+
+        let file = directory.path().join("file");
+        write(&file, b"one");
+        assert_eq!(
+            remove_owned_tree(&file, &recorded)
+                .expect_err("file is not the tree")
+                .code,
+            ErrorCode::RollbackConflict
+        );
+    }
+
+    #[test]
+    fn owned_file_removal_compares_content() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let file = directory.path().join("note.txt");
+        write(&file, b"hello");
+        let expected = sha256_hex(b"hello");
+
+        write(&file, b"changed");
+        assert_eq!(
+            remove_owned_file(&file, &expected)
+                .expect_err("changed file")
+                .code,
+            ErrorCode::RollbackConflict
+        );
+        assert!(file.exists());
+
+        write(&file, b"hello");
+        remove_owned_file(&file, &expected).expect("remove owned");
+        assert!(!file.exists());
+        remove_owned_file(&file, &expected).expect("idempotent");
     }
 }

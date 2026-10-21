@@ -9,3 +9,9 @@
 //!
 //! **Filled in by:** P4-06 (`manifest.rs`), P4-07/P4-08 (`capture.rs`), P4-05 (`store.rs`),
 //! P4-11 (`restore.rs`).
+
+pub mod capture;
+pub mod manifest;
+pub mod restore;
+pub mod store;
+pub mod verify;

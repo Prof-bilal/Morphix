@@ -2,4 +2,5 @@
 
 pub mod packs;
 pub mod settings;
+pub mod snapshots;
 pub mod transactions;

@@ -10,6 +10,8 @@
 
 #![allow(dead_code)]
 
+pub mod fs;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 

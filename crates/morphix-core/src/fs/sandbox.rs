@@ -110,6 +110,34 @@ impl SafePath {
         other.path.starts_with(&self.path)
     }
 
+    /// The parent directory, when this path is not the filesystem root.
+    #[must_use]
+    pub fn parent(&self) -> Option<Self> {
+        self.path.parent().and_then(|parent| Self::new(parent).ok())
+    }
+
+    /// The final component, when this path is not the filesystem root.
+    #[must_use]
+    pub fn file_name(&self) -> Option<&str> {
+        self.path.file_name().and_then(|name| name.to_str())
+    }
+
+    /// The path of `self` relative to `root`, for manifest entries and logs.
+    ///
+    /// # Errors
+    ///
+    /// Returns `E_PATH_TRAVERSAL` when `self` is not inside `root`.
+    pub fn relative_to(&self, root: &Self) -> Result<std::path::PathBuf> {
+        self.path
+            .strip_prefix(&root.path)
+            .map(std::path::Path::to_path_buf)
+            .map_err(|_| {
+                MorphixError::new(ErrorCode::PathTraversal, "the path is outside its root")
+                    .with_context("root", root.path.display().to_string())
+                    .with_context("path", self.path.display().to_string())
+            })
+    }
+
     /// Rejects an existing symlink in the ancestor chain, including the final component.
     ///
     /// Missing components are allowed: a caller creating a new file must still be able to
@@ -285,5 +313,98 @@ mod tests {
 
         let missing = SafePath::new(real.join("missing/file")).expect("absolute");
         assert!(missing.require_no_symlink_ancestors().is_ok());
+    }
+
+    #[test]
+    fn final_component_symlinks_are_rejected() {
+        let directory = tempfile::tempdir().expect("tempdir");
+        let real = directory.path().join("real.txt");
+        let link = directory.path().join("link.txt");
+        std::fs::write(&real, b"real").expect("write real");
+        std::os::unix::fs::symlink(&real, &link).expect("create symlink");
+
+        let target = SafePath::new(&link).expect("absolute");
+        assert_eq!(
+            target
+                .require_no_symlink_ancestors()
+                .expect_err("final symlink")
+                .code,
+            ErrorCode::SymlinkTarget
+        );
+    }
+
+    #[test]
+    fn containment_helpers_agree_with_prefix_checks() {
+        let root = SafePath::new("/home/tester/.config").expect("root");
+        let inside = SafePath::new("/home/tester/.config/kdeglobals").expect("inside");
+        let outside = SafePath::new("/home/tester/.local/share").expect("outside");
+
+        assert!(root.contains(&inside));
+        assert!(!root.contains(&outside));
+        assert_eq!(
+            inside.relative_to(&root).expect("relative").as_os_str(),
+            "kdeglobals"
+        );
+        assert_eq!(
+            inside.relative_to(&outside).expect_err("outside root").code,
+            ErrorCode::PathTraversal
+        );
+        assert_eq!(
+            inside.parent().expect("parent").as_path(),
+            std::path::Path::new("/home/tester/.config")
+        );
+        assert_eq!(inside.file_name(), Some("kdeglobals"));
+        assert!(SafePath::new("/").expect("fs root").parent().is_none());
+    }
+
+    /// Model-based containment test: a deterministic generator builds paths from an
+    /// adversarial alphabet, and an independent component-walk oracle must agree with
+    /// `SafePath::new` on every input. No external property-test crate: the oracle is
+    /// a second implementation of the rule, not a copy of the code under test.
+    #[test]
+    fn generated_paths_match_the_component_oracle() {
+        let components = [
+            "home", "tester", ".config", ".", "..", "", "a b", "..hidden", "x..y",
+        ];
+        let mut state: u64 = 0x9E37_79B9_7F4A_7C15;
+        let mut next = move || {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            state
+        };
+
+        for _ in 0..2000 {
+            let absolute = next().is_multiple_of(2);
+            let width = 1 + next() % 5;
+            let mut raw = String::new();
+            if absolute {
+                raw.push('/');
+            }
+            for index in 0..width {
+                if index > 0 {
+                    raw.push('/');
+                }
+                raw.push_str(components[(next() as usize) % components.len()]);
+            }
+            if next().is_multiple_of(7) {
+                raw.push('\0');
+            }
+
+            assert_eq!(
+                SafePath::new(raw.clone()).is_ok(),
+                oracle_accepts(&raw),
+                "oracle disagreement on {raw:?}"
+            );
+        }
+    }
+
+    /// Accepts exactly the paths `SafePath::new` must accept: absolute, NUL-free, and
+    /// with no `.` or `..` raw component. Written against the rule, not the code.
+    fn oracle_accepts(raw: &str) -> bool {
+        if !raw.starts_with('/') || raw.as_bytes().contains(&0) {
+            return false;
+        }
+        !raw.split('/').any(|part| part == "." || part == "..")
     }
 }

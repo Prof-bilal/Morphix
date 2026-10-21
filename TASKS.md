@@ -264,23 +264,23 @@ apply-time half of AC-24 are re-verified in Phases 9 and 5–6 (ADR-024).
 
 ## Phase 4 — Snapshot engine
 
-- [ ] **P4-01** Implement the `FileSystem` trait and real read/metadata/list operations.
-- [ ] **P4-02** Implement atomic writes: same-directory temp, fsync file, rename, fsync
+- [x] **P4-01** Implement the `FileSystem` trait and real read/metadata/list operations.
+- [x] **P4-02** Implement atomic writes: same-directory temp, fsync file, rename, fsync
       directory, mode preservation; tests on a temp filesystem.
-- [ ] **P4-03** Implement `SafePath` construction and containment checks with symlink
+- [x] **P4-03** Implement `SafePath` construction and containment checks with symlink
       ancestor rejection and property tests.
-- [ ] **P4-04** Implement deterministic tree hashing, tree copy, and tree removal with
+- [x] **P4-04** Implement deterministic tree hashing, tree copy, and tree removal with
       ownership checks.
-- [ ] **P4-05** Implement the content-addressed object store with dedup and fsync ordering.
-- [ ] **P4-06** Implement the snapshot manifest model, self-hash, and verification.
-- [ ] **P4-07** Implement config file and per-key capture, including absent keys.
-- [ ] **P4-08** Implement asset file/directory and wallpaper descriptor capture.
-- [ ] **P4-09** Implement snapshot verification, partial-snapshot detection, and startup GC.
-- [ ] **P4-10** Persist snapshots and snapshot-entry indexes; add detail queries.
-- [ ] **P4-11** Implement snapshot-restore plan generation with drift warnings. `[AC-16]`
-- [ ] **P4-12** Add failure tests: disk full, permission denied, truncated object, corrupted
+- [x] **P4-05** Implement the content-addressed object store with dedup and fsync ordering.
+- [x] **P4-06** Implement the snapshot manifest model, self-hash, and verification.
+- [x] **P4-07** Implement config file and per-key capture, including absent keys.
+- [x] **P4-08** Implement asset file/directory and wallpaper descriptor capture.
+- [x] **P4-09** Implement snapshot verification, partial-snapshot detection, and startup GC.
+- [x] **P4-10** Persist snapshots and snapshot-entry indexes; add detail queries.
+- [x] **P4-11** Implement snapshot-restore plan generation with drift warnings. `[AC-16]`
+- [x] **P4-12** Add failure tests: disk full, permission denied, truncated object, corrupted
       manifest.
-- [ ] **P4-13** Implement the exclusive mutation lock helper (`flock`) with contention tests.
+- [x] **P4-13** Implement the exclusive mutation lock helper (`flock`) with contention tests.
 
 **Phase exit:** all snapshot tests in TESTING §4.3 pass; snapshot store is readable without
 SQLite.

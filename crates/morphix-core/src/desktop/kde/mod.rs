@@ -9,8 +9,10 @@
 //! **Must never depend on:** `packs`, `planning`, `transactions`, `storage`.
 
 pub mod bus;
+pub mod config;
 pub mod probe;
 pub mod targets;
+pub mod wallpaper;
 
 pub use bus::{FakeBus, KDE_BUS_TIMEOUT, KdeBus, KdeService, SessionBus};
 pub use probe::{

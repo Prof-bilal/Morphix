@@ -11,7 +11,7 @@ Morphix is an original project. It is conceptually inspired by the *idea* of a
 customization marketplace with safe, inspectable mods, but it is not a port of Windhawk,
 shares no code with it, and does not target Windows.
 
-> ## Project status: Phases 0–2 implemented; Phase 1 has one open manual gate
+> ## Project status: Phases 0–4 implemented; Phase 1 has one open manual gate
 >
 > **There is no user-facing functionality yet.** Phase 0 is complete: the Cargo workspace,
 > the `morphix-core` module skeleton, the error taxonomy (73 stable codes with registry
@@ -37,8 +37,22 @@ shares no code with it, and does not target Windows.
 > AC-08) still depend on the Discover/Pack Detail UI (Phase 8) and the bundled packs
 > (Phase 9).
 >
-> No planning, snapshot, transaction, or KDE adapter write code exists. Everything described
-> below is the intended V0.1/V1 behavior, not a claim about working software. See
+> Phase 3 (change planner) is implemented: validated packs expand into deterministic,
+> read-only, hash-stable `ChangePlan`s with collision, capability, and compatibility
+> refusal paths, per-capability expansion (including decomposed global themes), drift
+> warnings, and consent binding to the plan hash. Planning writes nothing; live KDE
+> reads arrive in Phase 6.
+>
+> Phase 4 (snapshot engine) is implemented (P4-01…P4-13): the `FileSystem` trait with
+> real and recording implementations, atomic writes, `SafePath` containment, owned
+> tree removal, the content-addressed object store, the self-hashing manifest, capture
+> of config files/keys, asset trees, and wallpaper descriptors, store verification,
+> startup GC of partials, snapshot persistence, restore-plan generation with drift
+> warnings (AC-16), failure tests, and the `flock` mutation lock.
+>
+> No transaction/rollback engine or KDE adapter write code exists yet (Phases 5–6).
+> Everything described below beyond detection, packs, planning previews, and snapshots
+> is the intended V0.1/V1 behavior, not a claim about working software. See
 > [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
 > implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.
 

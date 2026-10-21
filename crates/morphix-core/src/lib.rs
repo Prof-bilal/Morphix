@@ -10,11 +10,14 @@
 //!
 //! # Status
 //!
-//! Phases 0–2 are implemented: errors, IDs, capabilities, allowlists, platform detection,
-//! filesystem safety, pack parsing/validation/store, and SQLite storage. `planning`,
-//! `snapshots`, `transactions`, `permissions`, and the `desktop::kde` adapter are still
-//! module declarations. A module's nested files are created when its first task lands, not
-//! in advance (TASKS.md).
+//! Phases 0–4 are implemented: errors, IDs, capabilities, allowlists, platform
+//! detection, filesystem safety, pack parsing/validation/store, SQLite storage, the
+//! read-only change planner, and the snapshot engine (capture, object store,
+//! manifest, verification, GC, persistence, restore planning, failure tests, and
+//! the mutation lock). `transactions` is still a module declaration, and the
+//! `desktop::kde` adapter still ends at presence probing: live reads and the full
+//! `DesktopAdapter` arrive in Phases 5–6. A module's nested files are created when
+//! its first task lands, not in advance (TASKS.md).
 
 // Library code must not panic: every failure is a typed error. These rules apply to the
 // library target only, so test targets can still `unwrap` a broken assertion
@@ -269,20 +272,24 @@ impl MorphixService {
         .with_context("phase", "Phase 6"))
     }
 
-    /// Builds a plan restoring a snapshot (stub until Phase 4).
+    /// Builds a plan restoring a snapshot (stub until Phase 5).
     ///
     /// # Errors
     ///
-    /// Always returns `E_UNSUPPORTED_RESOURCE` in Phase 3: snapshot capture does not
-    /// exist yet, so there is nothing truthful to plan against.
+    /// Always returns `E_UNSUPPORTED_RESOURCE` in Phase 4: the engine-level plan
+    /// exists (`snapshots::restore::plan_restore`, with drift warnings), but
+    /// mapping it onto an applicable `ChangePlan` needs the Phase 5 apply path —
+    /// `OperationAction` has no file-restore, tree-restore, or remove-path
+    /// operation yet, and inventing one here would bypass the transaction engine.
+    /// No plan is created and nothing is written.
     pub fn create_snapshot_restore_plan(
         &self,
         snapshot_id: &str,
     ) -> Result<crate::planning::plan::ChangePlan> {
         Err(MorphixError::new(
             ErrorCode::UnsupportedResource,
-            "snapshot restore plans arrive with the Phase 4 snapshot engine; no plan was \
-             created and nothing was written",
+            "snapshot restore execution arrives with the Phase 5 transaction engine; no \
+             plan was created and nothing was written",
         )
         .with_context("snapshot_id", snapshot_id))
     }
