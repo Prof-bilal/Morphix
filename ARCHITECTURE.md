@@ -39,7 +39,7 @@ no duplicate implementation sites.
 | Pack parser | `packs::parser`, `packs::manifest` | Bounded TOML parsing into typed models |
 | Pack validator | `packs::validator`, `packs::integrity` | Semantic rules, allowlist cross-checks, checksums |
 | Compatibility engine | `packs::compatibility` | Parse `[compatibility]` and evaluate it against the detected Plasma version |
-| Permission/capability engine | `permissions::{allowlist,resolve,consent}` | Closed capability set, key/effect/shortcut allowlists, consent tokens |
+| Permission/capability engine | `permissions::{resolve,consent}`, `core::allowlist` | Closed capability set, consent tokens; allowlist tables shared from `core` (ADR-023) |
 | Change planner | `planning::{planner,plan,expand,diff,collision}` | Deterministic read-only plan with preconditions |
 | Transaction engine | `transactions::{engine,journal,executor}` | PREPARE/SNAPSHOT/APPLY/VERIFY/COMMIT orchestration |
 | Snapshot engine | `snapshots::{capture,store,manifest,restore}` | Capture, verification, content-addressed storage |
@@ -162,6 +162,7 @@ crates/morphix-core/src/
 │   ├── ids.rs             # PackId, TransactionId, SnapshotId, PlanId, OperationId
 │   ├── versions.rs        # PlasmaVersion, SemVer wrapper, Constraint
 │   ├── capability.rs      # Capability enum + human descriptions
+│   ├── allowlist.rs       # closed config/effect/shortcut/widget/panel tables (ADR-023)
 │   ├── resource.rs        # ResourceKind, ResourceRef, ResourceState
 │   └── clock.rs           # Clock trait (testable timestamps)
 ├── platform/
@@ -210,9 +211,9 @@ crates/morphix-core/src/
 │   └── catalog.rs         # bundled + local catalog assembly
 ├── permissions/
 │   ├── mod.rs
-│   ├── allowlist.rs       # allowed config keys / effects / shortcuts per file
 │   ├── resolve.rs         # manifest request -> granted capability set
 │   └── consent.rs         # consent token bound to plan hash
+│                          # (the allowlist tables live in core::allowlist, ADR-023)
 ├── planning/
 │   ├── mod.rs
 │   ├── plan.rs            # ChangePlan, PlannedOperation, PlanHash

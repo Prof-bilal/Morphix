@@ -1,7 +1,9 @@
 # Morphix — Implementation Tasks
 
-- **Status:** Phase 0 complete. All ten tasks are checked, hosted CI passed, and the app
-  launches locally. Phase 1 is next.
+- **Status:** Phases 0–2 are implemented. Phase 0 is complete; Phase 1 is implemented with
+  the Plasma 5 VM refusal run pending; Phase 2's code, tests, and hosted CI are green.
+  Phase 3 (change planner) is next. Task notes record the verification actually performed,
+  and deferred acceptance criteria are named rather than hidden.
 - **Derived from:** [PHASES.md](PHASES.md). Order is a dependency order; do not start a
   task whose prerequisites are unchecked.
 - **Scope:** V0.1, KDE Plasma 6 only.
@@ -162,58 +164,84 @@ created and removed, and a tree snapshot confirms nothing else changes.
 
 ## Phase 2 — Pack spec, parser, validator, store
 
-- [ ] **P2-01** Add `0001_init.sql` with the full v1 schema, indexes, and history triggers;
-      implement the migration runner, `quick_check`, and pre-migration backup.
-- [ ] **P2-02** Implement `PackId`, `AssetKey`, `InstalledName`, and version newtypes with
-      validation and tests.
-- [ ] **P2-03** Implement strict serde manifest models with `deny_unknown_fields`, schema
-      version gate, and reserved-field rejection. `[AC-19]`
-- [ ] **P2-04** Implement the manifest parser with 256 KiB cap, UTF-8 enforcement, TOML
-      error mapping, and no panics. `[AC-19]`
-- [ ] **P2-05** Implement pack path validation: relative-only, allowed prefixes,
+- [x] **P2-01** Add `0001_init.sql` with the full v1 schema, indexes, and history triggers;
+      implement the migration runner, `quick_check`, and pre-migration backup. *(embedded
+      migrations apply in one transaction with a recorded SHA-256; `Storage::open` runs
+      `quick_check` and copies a 0600 backup before migrating. Five tests cover a fresh
+      file, append-only history, idempotent reopen, and a newer-schema refusal.)*
+- [x] **P2-02** Implement `PackId`, `AssetKey`, `InstalledName`, and version newtypes with
+      validation and tests. *(`core::ids` and `core::versions`; seven newtype tests and the
+      strict-SemVer suite.)*
+- [x] **P2-03** Implement strict serde manifest models with `deny_unknown_fields`, schema
+      version gate, and reserved-field rejection. `[AC-19]` *(every struct denies unknown
+      fields; reserved sections such as `[scripts]` fail deserialization.)*
+- [x] **P2-04** Implement the manifest parser with 256 KiB cap, UTF-8 enforcement, TOML
+      error mapping, and no panics. `[AC-19]` *(size is checked before the read; five unit
+      tests plus the fuzz target.)*
+- [x] **P2-05** Implement pack path validation: relative-only, allowed prefixes,
       traversal, symlink/hardlink, executable bit, file type, depth/length limits.
-      `[AC-19]`
-- [ ] **P2-06** Implement `checksums.sha256` parsing, completeness checks, and verification.
-      `[AC-19]`
+      `[AC-19]` *(`packs::path` and `fs::sandbox`; the install path re-checks with
+      `copy_tree_no_follow`.)*
+- [x] **P2-06** Implement `checksums.sha256` parsing, completeness checks, and verification.
+      `[AC-19]` *(`packs::integrity`; malformed, incomplete, extra, duplicate, and
+      mismatched entries are covered.)*
 - [x] **P2-07** Implement the `Capability` enum with exact string IDs and serde tests.
       *(delivered with P1-06: `AdapterProbe` needs the closed set, so `core::capability`
       was implemented there — 15 variants, exact dotted serde IDs, `from_id`, and serde
       round-trip/rejection tests.)*
-- [ ] **P2-08** Implement allowlists: config files/groups/keys with value types, KWin
-      effects, shortcut components/actions, asset structure requirements.
-- [ ] **P2-09** Implement asset structural validators (`.colors`, `index.theme`,
-      `cursors/`, non-empty directories, image extensions).
-- [ ] **P2-10** Implement the semantic validator: capability declared/unused/undeclared,
+- [x] **P2-08** Implement allowlists: config files/groups/keys with value types, KWin
+      effects, shortcut components/actions, asset structure requirements. *(**Deviation:**
+      the shared tables live in `core::allowlist`, not `permissions::allowlist`, because
+      `packs::validator` must consume them and `packs` may not depend on `permissions`
+      (ARCHITECTURE.md §5). `permissions` remains the grant-facing module. Recorded as
+      [ADR-023](DECISIONS.md#adr-023--allowlist-tables-live-in-the-core-module).)*
+- [x] **P2-09** Implement asset structural validators (`.colors`, `index.theme`,
+      `cursors/`, non-empty directories, image extensions). *(`packs::structure`.)*
+- [x] **P2-10** Implement the semantic validator: capability declared/unused/undeclared,
       appearance cross-references, duplicate targets, compatibility-vs-`desktop`/Plasma
       constraints (`packs::compatibility`), required files, dependency syntax, error
-      aggregation capped at 100.
-- [ ] **P2-11** Implement local pack installation: no-follow directory copy into the pack
+      aggregation capped at 100. *(1,421 lines; the fixture suite asserts one fixture per
+      documented code.)*
+- [x] **P2-11** Implement local pack installation: no-follow directory copy into the pack
       store, manifest hash pinning, DB row, duplicate/version refusal. `[AC-18]`
-- [ ] **P2-12** Implement catalog assembly (bundled + local + invalid) and pack detail DTO
-      with declared change set. `[AC-05]` `[AC-06]` `[AC-08]`
-- [ ] **P2-13** Add commands `list_packs`, `get_pack_detail`, `install_local_pack` with
-      error mapping. `[AC-18]`
-- [ ] **P2-14** Add `PackBuilder` and one fixture per validation error code from
-      PACK_SPEC §8. `[AC-19]`
-- [ ] **P2-15** Add the TOML fuzz harness with a seed corpus; run 60 s in CI.
-- [ ] **P2-16** Add tests proving invalid installs leave the target tree byte-identical.
+      *(staging directory, post-copy tree-hash verification, cleanup on failure.)*
+- [x] **P2-12** Implement catalog assembly (bundled + local + invalid) and pack detail DTO
+      with declared change set. `[AC-05]` `[AC-06]` `[AC-08]` *(catalog behavior is tested;
+      the UI halves of AC-05/AC-06/AC-08 are deferred to Phase 8 and the "four bundled
+      packs" precondition to Phase 9.)*
+- [x] **P2-13** Add commands `list_packs`, `get_pack_detail`, `install_local_pack` with
+      error mapping. `[AC-18]` *(registered in the Tauri builder; the three commands stay
+      thin and run on `spawn_blocking`.)*
+- [x] **P2-14** Add `PackBuilder` and one fixture per validation error code from
+      PACK_SPEC §8. `[AC-19]` *(`tests/validation_fixtures.rs`; the accounting test names
+      the three codes that are not validator-produced and where they are covered.)*
+- [x] **P2-15** Add the TOML fuzz harness with a seed corpus; run 60 s in CI.
+      *(`cargo test -p morphix-core --test parser_fuzz -- --ignored` in the rust job.)*
+- [x] **P2-16** Add tests proving invalid installs leave the target tree byte-identical.
+      *(`tests/install_local_pack.rs`: seven sentinel tests.)*
 
 **Phase exit:** AC-05…AC-08, AC-18, AC-19 pass; every documented validation code is
-reachable by a fixture.
+reachable by a fixture. *(Met for AC-18/AC-19 and the catalog-level behavior; AC-05's
+four-bundled-pack precondition, AC-06's detail view, and AC-08's rendered change set are
+deferred to Phases 8–9 as recorded above. Phase 3 starts with this deferral on the
+record.)*
 
 ## Phase 3 — Change planner
 
 - [ ] **P3-01** Implement plan/operation models, canonical JSON serialization, and
       `PlanHash` with determinism tests. `[AC-09]`
 - [ ] **P3-02** Implement `SystemFingerprint` and precondition capture (pack, system,
-      config hash/key, target ownership, shortcut, effect, wallpaper).
+      config hash/key, target ownership, shortcut, effect, wallpaper). *Pre-state is
+      injected: the planner reads through a `PlannerReads` seam it owns, not through the
+      Phase 6 adapter reads ([ADR-024](DECISIONS.md#adr-024--acceptance-criteria-follow-the-phase-that-supplies-their-dependency)).*
 - [ ] **P3-03** Finalize the KDE target map resolver and installed-name derivation with
       tests. `[AC-08]`
 - [ ] **P3-04** Implement `[appearance]` expansion into concrete operations. `[AC-09]`
 - [ ] **P3-05** Implement settings, KWin effect, and shortcut expansion with allowlist
       validation.
 - [ ] **P3-06** Implement collision and ownership checks against `installed_assets` and
-      filesystem state. `[AC-21]`
+      filesystem state. *The ownership snapshot is passed in by the service facade, so
+      `planning` keeps its ban on depending on `storage` (ARCHITECTURE.md §5).* `[AC-21]`
 - [ ] **P3-07** Implement human-readable diff generation for config, shortcuts, effects,
       assets, and wallpaper. `[AC-09]`
 - [ ] **P3-08** Implement plan warnings: `overwrites_existing_value`,
@@ -222,14 +250,17 @@ reachable by a fixture.
 - [ ] **P3-10** Implement planner orchestration and all refusal paths (unsupported,
       incompatible, capability, collision, missing dependency). `[AC-07]` `[AC-21]`
 - [ ] **P3-11** Add commands `create_pack_plan`, `discard_plan`; stub
-      `create_snapshot_restore_plan` until Phase 4.
-- [ ] **P3-12** Add plan-purity tests with `RecordingFileSystem` and `FakeAdapter`.
+      `create_snapshot_restore_plan` until Phase 4. *`create_pack_plan` answers
+      `E_ADAPTER_UNAVAILABLE` until Phase 6 supplies the adapter reads (ADR-024).*
+- [ ] **P3-12** Add plan-purity tests with a planning-owned recording state and
+      `FakeAdapter`. *`RecordingFileSystem` is P4-01 and cannot be a Phase 3 dependency.*
       `[AC-10]`
 - [ ] **P3-13** Add per-capability planner tests, including the wallpaper probe-unavailable
       branch. `[AC-24]`
 
-**Phase exit:** AC-09, AC-10, AC-21 and the planning half of AC-24 pass; plans are stable
-and read-only to create.
+**Phase exit:** AC-09, AC-10, AC-21 and the planning half of AC-24 pass at planner level;
+plans are stable and read-only to create. The bundled-pack halves of AC-09/AC-10 and the
+apply-time half of AC-24 are re-verified in Phases 9 and 5–6 (ADR-024).
 
 ## Phase 4 — Snapshot engine
 

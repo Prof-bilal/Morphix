@@ -1,12 +1,12 @@
 # Morphix — Implementation Phases
 
-- **Status:** Phase 0 complete; hosted CI run `39295512014` is green. Phase 1 (system
-  detection) is implemented: P1-01…P1-13 are complete, including the support verdict with
-  its closed reason set, the `SystemStatus` IPC command and cache, the Dashboard status
-  card, and the zero-write detection suite. A real CachyOS session (Plasma 6.8.0, Wayland,
-  x86_64) reports `Supported`; the Plasma 5 VM refusal run is still pending. No pack,
-  planning, snapshot, transaction, or KDE adapter write code exists. See
-  [TASKS.md](TASKS.md) for the per-task state.
+- **Status:** Phases 0–2 are implemented and hosted CI is green on the Phase 2 commit
+  `aa254bc`. Phase 0 is complete. Phase 1 is implemented (P1-01…P1-13), with the Plasma 5
+  VM refusal run still pending. Phase 2 is implemented (P2-01…P2-16) with its parser,
+  validation, install-sentinel, store, and fuzz suites green; its AC-05/AC-06/AC-08 exit
+  criteria depend on the Phase 8 UI and Phase 9 bundled packs and are recorded as deferred,
+  not met. Phase 3 (change planner) is next. No planning, snapshot, transaction, or KDE
+  adapter write code exists. See [TASKS.md](TASKS.md) for the per-task state.
 - **Related:** [MVP.md](MVP.md) §7 (acceptance criteria), [TASKS.md](TASKS.md)
   (executable tasks), [ARCHITECTURE.md](ARCHITECTURE.md).
 
@@ -199,7 +199,9 @@ tests/fixtures/packs/**
 
 **Exit criteria**
 
-- AC-05, AC-06, AC-07, AC-08, AC-18, AC-19 pass.
+- AC-05, AC-06, AC-07, AC-08, AC-18, AC-19 pass. *(AC-05, AC-06 and AC-08 are deferred to
+  Phases 8–9 by [ADR-024](DECISIONS.md#adr-024--acceptance-criteria-follow-the-phase-that-supplies-their-dependency);
+  AC-07, AC-18 and AC-19 are met.)*
 - Every validation fixture produces the documented `ErrorCode`.
 - No pack is installed by execution or extraction; only directory copy.
 - DB migrations apply to a fresh file and are idempotent on restart.
@@ -250,7 +252,10 @@ src-tauri/src/commands/plans.rs
 
 **Exit criteria**
 
-- AC-09, AC-10, AC-21, AC-24 pass; expansion tests exist for every capability.
+- AC-09, AC-10, AC-21, AC-24 pass; expansion tests exist for every capability. *(Met at
+  planner level with fixture packs and a fake adapter; the bundled-pack halves of AC-09 and
+  AC-10 are re-verified in Phase 9, the apply-time half of AC-24 in Phases 5–6 —
+  [ADR-024](DECISIONS.md#adr-024--acceptance-criteria-follow-the-phase-that-supplies-their-dependency).)*
 - Planning twice on unchanged state yields identical canonical plans.
 - No planner code path can write to the filesystem or DBus (verified by types and recording
   tests).

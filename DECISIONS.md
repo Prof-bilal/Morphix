@@ -34,6 +34,8 @@ and an ADR disagree, the ADR is wrong until it is updated or superseded.
 | [ADR-020](#adr-020--never-restart-the-desktop-shell) | Never restart the desktop shell | Accepted |
 | [ADR-021](#adr-021--plasma-scripting-is-a-trusted-generator-boundary) | Plasma scripting is a trusted-generator boundary | Accepted |
 | [ADR-022](#adr-022--verify-live-state-and-effective-configuration) | Verify live state and effective configuration | Accepted |
+| [ADR-023](#adr-023--allowlist-tables-live-in-the-core-module) | Allowlist tables live in the `core` module | Accepted |
+| [ADR-024](#adr-024--acceptance-criteria-follow-the-phase-that-supplies-their-dependency) | Acceptance criteria follow the phase that supplies their dependency | Accepted |
 
 ---
 
@@ -960,6 +962,124 @@ live daemon state first (`supportInformation`, `/Effects`, `wallpaper(u)`, panel
 - `ResourceState` distinguishes `Absent` from a value.
 - `kdedefaults/` is part of snapshot scope.
 - TESTING.md forbids full-screen pixel assertions as a pass criterion.
+
+---
+
+## ADR-023 — Allowlist tables live in the `core` module
+
+- **Status:** Accepted
+- **Date:** 2026-10-21
+
+### Context
+
+ARCHITECTURE.md §4 originally placed the closed allowlist tables (config targets and
+keys, KWin effects, shortcut components/actions, panel and widget enums, look-and-feel
+components) in `permissions/allowlist.rs`. P2-08 could not build them there:
+
+1. `packs::validator` must reject a declaration against the same tables the grant engine
+   uses. Two copies of a security table drift, and a drift is a security bug in whichever
+   direction it happens.
+2. ARCHITECTURE.md §5 forbids `packs` from depending on `permissions`.
+
+The only module both may depend on is `core`.
+
+### Decision
+
+The tables live in `core::allowlist` as pure data with no I/O. `packs::validator` reads
+them to reject declarations; `permissions::resolve` reads them to compute grants.
+`permissions/allowlist.rs` does not exist.
+
+### Reasoning
+
+- One table, one source of truth. A key accepted by the validator is exactly a key the
+  grant engine knows how to authorize.
+- `core` is already the shared vocabulary module (`Capability`, `ConfigTarget` values are
+  meaningful to both a validator and a resolver), so the tables fit its role.
+- The tables are compile-time constants; nothing is added to `core`'s dependency set.
+
+### Tradeoffs
+
+- `core` grows beyond "IDs, versions, capabilities, resource types" into policy data. It
+  stays policy *data*; no behavior, no I/O, no decisions.
+- `permissions` is thin until P3-06/P3-12 add `resolve` and `consent`.
+- A reader looking for "the allowlist" in the module named `permissions` will not find it;
+  the doc comment at the top of `core/allowlist.rs` explains why.
+
+### Consequences
+
+- ARCHITECTURE.md §4 module tree and component table updated.
+- A drift test must assert that the validator and the resolver consult the same functions
+  rather than duplicated tables.
+- Future allowlist additions go in `core::allowlist` only.
+
+---
+
+## ADR-024 — Acceptance criteria follow the phase that supplies their dependency
+
+- **Status:** Accepted
+- **Date:** 2026-10-21
+
+### Context
+
+Several acceptance criteria are named by the exit criteria of a phase that cannot
+demonstrate them:
+
+- Phase 2 names AC-05 (catalog lists four bundled packs), AC-06 (pack detail) and AC-08
+  (rendered change set). AC-05 needs the four first-party packs (Phase 9); AC-06 and AC-08
+  need the Discover / Pack Detail routes (Phase 8).
+- Phase 3 names AC-09 (plan content), AC-10 (plan purity), AC-21 (refusal) and AC-24
+  (wallpaper). AC-09 and AC-10 are written against "a bundled pack", which is Phase 9.
+  AC-24 asserts an apply-time read-back through `org.kde.PlasmaShell.wallpaper(u)`, which
+  needs the transaction engine (Phase 5) and the KDE adapter (Phase 6).
+- Phase 3 must read live KDE pre-state to build a real plan, but the adapter read methods
+  (`resolve_target`, `read_state`, `validate_value`) were deliberately left off the
+  `DesktopAdapter` trait in Phase 1 and are scheduled in Phase 6.
+
+PHASES.md rule 5 forbids starting a phase while the previous phase's exit criteria are
+unmet unless an ADR records the exception.
+
+### Decision
+
+An acceptance criterion is demonstrated in the phase that supplies its dependency. The
+earlier phase records the criterion as **deferred**, names the phase that will demonstrate
+it, and never marks it met. Within its own phase, the observable half is demonstrated with
+test fixtures.
+
+Concretely:
+
+- **Phase 2** exits with AC-05/AC-06/AC-08 deferred to Phases 8–9, and meets AC-07, AC-18
+  and AC-19.
+- **Phase 3** implements the planner as a pure function over injected pre-state. Tests
+  supply a fake adapter and a recording state, and satisfy the planner-observable halves of
+  AC-09, AC-10, AC-21 and AC-24 using fixture packs. The bundled-pack half of AC-09/AC-10
+  is re-verified in Phase 9; the apply-time half of AC-24 in Phases 5–6.
+- The `create_pack_plan` command returns `E_ADAPTER_UNAVAILABLE` until Phase 6 injects the
+  real KDE read path. It never returns an empty or optimistic plan.
+
+### Reasoning
+
+- Building the UI or the KDE read path early would collapse two phase boundaries and make
+  the remaining plan meaningless.
+- Declaring a criterion met from a test that mocks away its dependency is a false pass; it
+  is the failure mode this repository's testing rules exist to prevent.
+- A typed refusal is honest to the user: a specific error code, not a plan that looks valid
+  and applies nothing.
+
+### Tradeoffs
+
+- Between Phase 3 and Phase 6 the shipped app cannot produce a plan from a real session.
+  This is a visible capability gap for two phases, not a hidden one.
+- Phase 3's exit criteria are met by planner-level evidence, so Phases 5, 6 and 9 must
+  re-verify their apply-time and bundled-pack halves rather than assuming them.
+- The deferral list must be maintained in three places (PHASES.md, TASKS.md, README.md) or
+  it becomes untrue.
+
+### Consequences
+
+- PHASES.md Phase 2 and Phase 3 exit criteria are annotated with the deferral.
+- TASKS.md records the deferred criteria against the phase that postpones them.
+- `E_ADAPTER_UNAVAILABLE` from `create_pack_plan` is a tested refusal path.
+- Phase 6 must remove that refusal path in the same change that adds the adapter reads.
 
 ---
 

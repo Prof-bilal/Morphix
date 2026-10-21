@@ -41,6 +41,11 @@ impl PackState {
         state
     }
 
+    /// Shared accessor for sibling plan commands (P3-11).
+    pub fn core_service(&self) -> Result<Arc<MorphixService>, IpcError> {
+        self.service()
+    }
+
     fn service(&self) -> Result<Arc<MorphixService>, IpcError> {
         if let Some(service) = self.service.get() {
             return Ok(Arc::clone(service));

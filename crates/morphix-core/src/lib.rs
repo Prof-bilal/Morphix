@@ -10,8 +10,11 @@
 //!
 //! # Status
 //!
-//! Phase 0 skeleton: the modules below declare ownership and contain no logic yet. A
-//! module's nested files are created when its first task lands, not in advance.
+//! Phases 0–2 are implemented: errors, IDs, capabilities, allowlists, platform detection,
+//! filesystem safety, pack parsing/validation/store, and SQLite storage. `planning`,
+//! `snapshots`, `transactions`, `permissions`, and the `desktop::kde` adapter are still
+//! module declarations. A module's nested files are created when its first task lands, not
+//! in advance (TASKS.md).
 
 // Library code must not panic: every failure is a typed error. These rules apply to the
 // library target only, so test targets can still `unwrap` a broken assertion
@@ -241,6 +244,62 @@ impl MorphixService {
             },
             &outcome,
         ))
+    }
+
+    /// Builds a change plan for an installed pack (P3-11).
+    ///
+    /// Until Phase 6 injects the real KDE read path, this answers
+    /// `E_ADAPTER_UNAVAILABLE` rather than returning an empty or optimistic plan
+    /// ([ADR-024](DECISIONS.md#adr-024--acceptance-criteria-follow-the-phase-that-supplies-their-dependency)).
+    /// The planner itself (`planning::planner::plan_pack`) is fully implemented and
+    /// covered at planner level with fixture packs and injected pre-state.
+    ///
+    /// # Errors
+    ///
+    /// Returns `E_ADAPTER_UNAVAILABLE` on every path in Phase 3, and `E_INVALID_ID`
+    /// when no available pack has the requested ID.
+    pub fn create_pack_plan(&self, pack_id: &str) -> Result<crate::planning::plan::ChangePlan> {
+        self.get_pack_detail(pack_id)?;
+        Err(MorphixError::new(
+            ErrorCode::AdapterUnavailable,
+            "planning from live KDE state arrives with the Phase 6 adapter reads; no plan \
+             was created and nothing was written",
+        )
+        .with_context("pack_id", pack_id)
+        .with_context("phase", "Phase 6"))
+    }
+
+    /// Builds a plan restoring a snapshot (stub until Phase 4).
+    ///
+    /// # Errors
+    ///
+    /// Always returns `E_UNSUPPORTED_RESOURCE` in Phase 3: snapshot capture does not
+    /// exist yet, so there is nothing truthful to plan against.
+    pub fn create_snapshot_restore_plan(
+        &self,
+        snapshot_id: &str,
+    ) -> Result<crate::planning::plan::ChangePlan> {
+        Err(MorphixError::new(
+            ErrorCode::UnsupportedResource,
+            "snapshot restore plans arrive with the Phase 4 snapshot engine; no plan was \
+             created and nothing was written",
+        )
+        .with_context("snapshot_id", snapshot_id))
+    }
+
+    /// Discards a persisted plan so it can never apply (P3-09).
+    ///
+    /// Discard is idempotent: discarding a missing, expired, or already-discarded plan
+    /// succeeds without writing desktop state. Expired plans are collected first.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed database error when the plan store cannot be updated.
+    pub fn discard_plan(&self, plan_id: &str) -> Result<()> {
+        let mut storage = self.lock_storage()?;
+        let _ = storage.delete_expired_plans(&now_rfc3339())?;
+        let _ = storage.discard_plan(plan_id)?;
+        Ok(())
     }
 
     fn lock_storage(&self) -> Result<MutexGuard<'_, Storage>> {

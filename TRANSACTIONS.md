@@ -142,7 +142,10 @@ Plan properties:
   system state; no re-planning.
 - **Expiring:** a stale-expired plan returns `E_PLAN_EXPIRED` before any lock is taken.
 - **Read-only to create:** the planner uses read APIs only; `RecordingFileSystem` and a
-  recording adapter assert zero writes during planning (MVP AC-10).
+  recording adapter assert zero writes during planning (MVP AC-10). In Phase 3 the reads
+  are injected through a planning-owned seam, because `fs::FileSystem` lands in Phase 4 and
+  the adapter reads in Phase 6; the recording `FileSystem` replaces that seam once it
+  exists (ADR-024).
 
 Preconditions:
 

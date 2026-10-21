@@ -23,7 +23,10 @@ pub fn run() {
             commands::system::get_system_status,
             commands::packs::list_packs,
             commands::packs::get_pack_detail,
-            commands::packs::install_local_pack
+            commands::packs::install_local_pack,
+            commands::plans::create_pack_plan,
+            commands::plans::create_snapshot_restore_plan,
+            commands::plans::discard_plan
         ])
         .run(tauri::generate_context!());
 

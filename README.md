@@ -11,23 +11,33 @@ Morphix is an original project. It is conceptually inspired by the *idea* of a
 customization marketplace with safe, inspectable mods, but it is not a port of Windhawk,
 shares no code with it, and does not target Windows.
 
-> ## Project status: Phase 0 complete; Phase 1 in progress
+> ## Project status: Phases 0–2 implemented; Phase 1 has one open manual gate
 >
-> **There is no user-facing functionality yet.** Phase 0 closed with every task implemented
-> and hosted CI green (run `39295512014`): the Cargo workspace, the `morphix-core` module
-> skeleton, the error taxonomy (73 stable codes with registry drift tests), the
-> module-boundary test, the Tauri 2 shell answering `get_app_info`, the Vite/React shell
-> with the eight placeholder routes, the `tracing` logging bootstrap, the documentation
-> checker, and CI workflows. The app launches locally. Phase 1 is in progress: the
-> `platform` layer (XDG and Morphix paths, tolerant `/etc/os-release` parsing, package
-> manager detection, session/UID probing, and the allowlisted version-probe command
-> runner), Plasma version/compatibility parsing, the `DesktopAdapter` boundary with
-> capability states, the KDE session-bus presence probe behind `KdeBus`, and the Plasma
-> version fallback chain (package database then allowlisted version probes) are
-> implemented, together with the support verdict, the `get_system_status` command and
-> cache, and the Dashboard status card. A real CachyOS session (Plasma 6.8.0, Wayland,
-> x86_64) reports `Supported`; the Plasma 5 VM refusal run remains pending. No pack,
-> planning, snapshot, transaction, or KDE adapter write code exists. Everything described
+> **There is no user-facing functionality yet.** Phase 0 is complete: the Cargo workspace,
+> the `morphix-core` module skeleton, the error taxonomy (73 stable codes with registry
+> drift tests), the module-boundary test, the Tauri 2 shell answering `get_app_info`, the
+> Vite/React shell with placeholder routes, the `tracing` logging bootstrap, the
+> documentation checker, and CI workflows, with hosted CI green.
+>
+> Phase 1 (system detection) is implemented (P1-01…P1-13): the `platform` layer (XDG and
+> Morphix paths, tolerant `/etc/os-release` parsing, package manager detection, session/UID
+> probing, and the allowlisted version-probe command runner), Plasma
+> version/compatibility parsing, the `DesktopAdapter` boundary with capability states, the
+> KDE session-bus presence probe behind `KdeBus`, the Plasma version fallback chain, the
+> support verdict, the `get_system_status` command and cache, and the Dashboard status
+> card. A real CachyOS session (Plasma 6.8.0, Wayland, x86_64) reports `Supported`; the
+> Plasma 5 VM refusal run is still pending.
+>
+> Phase 2 (pack spec, parser, validator, store) is implemented (P2-01…P2-16) with hosted CI
+> green on commit `aa254bc`: strict schema-v1 models, the bounded TOML parser, path and tree
+> safety, checksum verification, code-owned allowlists, the aggregated validator, the SQLite
+> schema and migration runner, the no-follow pack store, catalog/detail DTOs, the
+> `list_packs` / `get_pack_detail` / `install_local_pack` commands, and the validation,
+> install-sentinel, and fuzz suites. Its catalog-facing acceptance criteria (AC-05, AC-06,
+> AC-08) still depend on the Discover/Pack Detail UI (Phase 8) and the bundled packs
+> (Phase 9).
+>
+> No planning, snapshot, transaction, or KDE adapter write code exists. Everything described
 > below is the intended V0.1/V1 behavior, not a claim about working software. See
 > [PHASE0.md](PHASE0.md), [PHASES.md](PHASES.md), and [TASKS.md](TASKS.md) for the
 > implementation plan, and [DECISIONS.md](DECISIONS.md) for the reasoning behind the scope.

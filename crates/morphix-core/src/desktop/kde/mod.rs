@@ -10,6 +10,7 @@
 
 pub mod bus;
 pub mod probe;
+pub mod targets;
 
 pub use bus::{FakeBus, KDE_BUS_TIMEOUT, KdeBus, KdeService, SessionBus};
 pub use probe::{

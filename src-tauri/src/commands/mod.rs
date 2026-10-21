@@ -10,8 +10,10 @@
 
 pub mod app;
 pub mod packs;
+pub mod plans;
 pub mod system;
 
 pub use app::{AppInfo, get_app_info};
 pub use packs::{PackState, get_pack_detail, install_local_pack, list_packs};
+pub use plans::{create_pack_plan, create_snapshot_restore_plan, discard_plan};
 pub use system::{SystemStatusState, get_system_status};
