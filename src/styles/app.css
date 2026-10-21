@@ -312,6 +312,231 @@ body {
   font-size: 0.9em;
 }
 
+/* Settings cards (UI_SPEC.md §5.7). Same surface treatment as the status card so
+   every route reads as one app rather than a mix of finished and bare pages. */
+.info-card {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-glass-raised);
+}
+
+.info-card h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.15rem;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.info-list__row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 10rem) 1fr auto;
+  align-items: start;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--border);
+}
+
+.info-list__row:first-child {
+  border-top: 0;
+}
+
+.info-list dt {
+  color: var(--text-muted);
+}
+
+.info-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.copy-button {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: var(--surface-sunken);
+}
+
+.offline-badge {
+  display: inline-block;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: 0.9rem;
+}
+
+.theme-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.theme-picker legend {
+  padding: 0;
+  color: var(--text-muted);
+}
+
+.theme-picker__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.theme-picker__option input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.settings-links {
+  margin: var(--space-4) 0 0;
+}
+
+.settings-links a {
+  color: var(--accent);
+}
+
+/* Discover pack cards (UI_SPEC.md §5.2). Same card treatment as the status card
+   so every route reads as one app. */
+.pack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.pack-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-glass-raised);
+}
+
+.pack-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.pack-card__name a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.pack-card__name a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.pack-card__summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.pack-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-size: 0.8rem;
+}
+
+.badge--bundled {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.badge--local {
+  border-color: var(--info);
+  color: var(--info);
+}
+
+.badge--invalid {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.badge--applied {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--text-inverse);
+}
+
+.pack-card__actions {
+  margin: auto 0 0;
+  padding-top: var(--space-2);
+}
+
+.pack-card__actions a {
+  color: var(--accent);
+}
+
+.pack-card--skeleton {
+  min-height: 9rem;
+  background:
+    linear-gradient(var(--surface-sunken), var(--surface-sunken)) no-repeat;
+}
+
+.empty-state {
+  margin-top: var(--space-5);
+  padding: var(--space-5);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-glass-raised);
+}
+
+.empty-state p {
+  margin: var(--space-2) 0;
+}
+
+.empty-state a {
+  color: var(--accent);
+}
+
+.pack-detail__summary {
+  color: var(--text-muted);
+}
+
+.issue-list,
+.change-list,
+.asset-list {
+  padding-left: var(--space-5);
+}
+
+.issue-list li,
+.change-list li,
+.asset-list li {
+  margin: var(--space-1) 0;
+}
+
 /* Accessibility: a user who asks the system for less transparency gets opaque surfaces.
    Contrast is never dependent on the wallpaper. */
 @media (prefers-reduced-transparency: reduce) {

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -12,13 +13,20 @@ vi.mock("./api/client", async (importOriginal) => {
   return {
     ...actual,
     getSystemStatus: vi.fn(() => new Promise(() => {})),
+    listPacks: vi.fn(() => new Promise(() => {})),
+    getPackDetail: vi.fn(() => new Promise(() => {})),
   };
 });
 
 function renderShell(initialPath = "/") {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
-      <App />
+      <QueryClientProvider client={client}>
+        <App />
+      </QueryClientProvider>
     </MemoryRouter>,
   );
 }
@@ -61,6 +69,12 @@ describe("App shell", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("renders the Discover catalog route", () => {
+    renderShell("/discover");
+
+    expect(screen.getByRole("heading", { level: 1, name: "Discover" })).toBeInTheDocument();
   });
 
   it("renders a pack route with its parameter and a truthful placeholder", () => {
